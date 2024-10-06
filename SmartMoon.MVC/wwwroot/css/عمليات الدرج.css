@@ -1,0 +1,131 @@
+.drawer-operations-report {
+    padding: 30px;
+    margin: 0 auto;
+}
+
+.drawer-operations-report h2 {
+    text-align: center;
+    color: var(--color-default);
+}
+
+.drawer-operations-report button {
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-default);
+    color: var(--color-white);
+    padding: 10px 15px;
+    font-size: 14px;
+    transition: 1s;
+}
+
+.drawer-operations-report button:hover {
+    background-color: var(--color-second);
+    transform: scale(1.01);
+}
+
+.drawer-operations-report .operations-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    background-color: var(--color-white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.drawer-operations-report .operations-table th,
+.drawer-operations-report .operations-table td {
+    padding: 12px;
+    border: 1px solid var(--color-light);
+    text-align: center;
+    transition: 1s;
+}
+
+.drawer-operations-report .operations-table th {
+    background-color: var(--color-default);
+    color: var(--color-white);
+}
+
+.drawer-operations-report .operations-table td:hover {
+    background-color: var(--color-light);
+}
+
+.drawer-operations-report .previous-balance,
+.drawer-operations-report .new-balance {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.drawer-operations-report .bxs-edit,
+.drawer-operations-report .bxs-trash {
+    font-size: 22px;
+    color: var(--color-default);
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.drawer-operations-report .bxs-trash {
+    color: #F44336;
+}
+
+.drawer-operations-report .bxs-edit:hover,
+.drawer-operations-report .bxs-trash:hover {
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .drawer-operations-report .row {
+        flex-direction: column;
+    }
+
+    .drawer-operations-report input,
+    .drawer-operations-report select {
+        width: 100%;
+    }
+
+    .drawer-operations-report button {
+        width: 100%;
+    }
+
+    .drawer-operations-report .operations-table th,
+    .drawer-operations-report .operations-table td {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    .drawer-operations-report .previous-balance,
+    .drawer-operations-report .new-balance {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .drawer-operations-report {
+        padding: 10px;
+    }
+
+    .drawer-operations-report input,
+    .drawer-operations-report select {
+        padding: 6px;
+        font-size: 12px;
+    }
+
+    .drawer-operations-report button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .drawer-operations-report .operations-table th,
+    .drawer-operations-report .operations-table td {
+        font-size: 10px;
+        padding: 6px;
+    }
+
+    .drawer-operations-report .previous-balance,
+    .drawer-operations-report .new-balance {
+        font-size: 12px;
+    }
+}

@@ -1,0 +1,111 @@
+.item-display-section,.customer-display-section {
+    padding: 30px;
+  }
+
+.items-table,.customers-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    background-color: var(--color-white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .items-table th,
+  .items-table td,.customers-table th,
+  .customers-table td {
+    padding: 12px;
+    border: 1px solid var(--color-light);
+    text-align: center;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+  }
+  
+  .items-table th,.customers-table th {
+    background-color: var(--color-default);
+    color: var(--color-white);
+  }
+  
+  .items-table td:hover,.customers-table td:hover  {
+    background-color: var(--color-light);
+    color: var(--color-dark);
+  }
+  
+  .pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .pagination button {
+    padding: 10px 20px;
+    font-size: 14px;
+    background-color: var(--color-default);
+    color: var(--color-white);
+    border-radius: 4px;
+  }
+  
+  .pagination button:hover {
+    background-color: var(--color-second);
+  }
+  .error {
+    color: #e74c3c;
+    font-size: 0.9em;
+    display: block;
+    background-color: #f8d7da; 
+    border-left: 3px solid #e74c3c;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: -10px;
+    line-height: 1.4;
+    font-family: Arial, sans-serif; 
+  }
+  @media (max-width: 768px) {
+    .row {
+      flex-direction: column;
+    }
+  
+    .column {
+      width: 100%;
+    }
+  
+    .items-table th,
+    .items-table td,.customers-table th,
+    .customers-table td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  
+  }
+  
+  @media (max-width: 480px) {
+    .row {
+      gap: 5px;
+    }
+  
+    .column {
+      flex: 1 1 100%;
+    }
+
+    input,
+    select {
+      padding: 6px;
+      font-size: 12px; 
+    }
+  
+    button {
+      padding: 6px 10px;
+      font-size: 12px; 
+    }
+  
+    .items-table th,
+    .items-table td,.customers-table th,
+    .customers-table td {
+      font-size: 10px;
+      padding: 6px; 
+    }
+  }  
+

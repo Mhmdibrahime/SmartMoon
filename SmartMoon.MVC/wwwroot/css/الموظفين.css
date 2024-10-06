@@ -1,0 +1,209 @@
+.employee-section,.salary-section,.transaction-section  {
+    padding: 30px;
+    margin: 0 auto;
+  }
+  
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-default);
+    color: var(--color-white);
+    padding: 10px 15px;
+    font-size: 14px;
+    transition: 1s;
+  }
+  
+  button:hover {
+    background-color: var(--color-second);
+    transform: scale(1.01);
+  }
+  
+  .employee-table,.salary-table,.transaction-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    background-color: var(--color-white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .employee-table th,
+  .employee-table td,
+  .salary-table th,
+.salary-table td,.transaction-table th,.transaction-table td  {
+    padding: 12px;
+    border: 1px solid var(--color-light);
+    text-align: center;
+    transition: 1s;
+  }
+  
+  .employee-table th,.salary-table th,.transaction-table th {
+    background-color: var(--color-default);
+    color: var(--color-white);
+  }
+  
+  .employee-table td:hover,.salary-table td:hover,.transaction-table td:hover {
+    background-color: var(--color-light);
+  }
+  
+  .total-salary {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  
+  .bx-edit,
+  .bx-trash {
+    font-size: 22px;
+    color: var(--color-default);
+    transition: 0.3s;
+    cursor: pointer;
+  }
+  
+  .bx-trash {
+    color: #F44336;
+  }
+  
+  .bx-edit:hover,
+  .bx-trash:hover {
+    transform: scale(1.1);
+  }
+  
+  @media (max-width: 768px) {
+    .row {
+      flex-direction: column;
+    }
+  
+    input,
+    select {
+      width: 100%;
+    }
+  
+    button {
+      width: 100%;
+    }
+  
+    .employee-table th,
+    .employee-table td,.transaction-table th
+    ,.transaction-table td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  
+    .total-salary {
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .employee-section,.transaction-section {
+      padding: 10px;
+    }
+  
+    input,
+    select {
+      padding: 6px;
+      font-size: 12px;
+    }
+  
+    button {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+  
+    .employee-table th,
+    .employee-table td,.transaction-table th
+    ,.transaction-table td {
+      font-size: 10px;
+      padding: 6px;
+    }
+  
+    .total-salary {
+      font-size: 12px;
+    }
+  }
+  .custom-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  
+  .custom-select input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-light);
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .custom-select .options-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    border: 1px solid var(--color-light);
+    background-color: var(--color-white);
+    z-index: 1;
+  }
+  
+  .custom-select .option {
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .custom-select .option:hover {
+    background-color: var(--color-light);
+  }
+  
+  .buttons {
+    margin-top: 20px;
+  }
+  
+  @media (max-width: 768px) {
+    .row {
+      flex-direction: column;
+    }
+  
+    input,
+    select {
+      width: 100%;
+    }
+  
+    button {
+      width: 100%;
+    }
+  
+    .salary-table th,
+    .salary-table td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .salary-section {
+      padding: 10px;
+    }
+  
+    input,
+    select {
+      padding: 6px;
+      font-size: 12px;
+    }
+  
+    button {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+  
+    .salary-table th,
+    .salary-table td {
+      font-size: 10px;
+      padding: 6px;
+    }
+  }
