@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartMoon.MVC.Models.Data;
 
@@ -11,9 +12,11 @@ using SmartMoon.MVC.Models.Data;
 namespace SmartMoon.MVC.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241007103246_addpurchasebill")]
+    partial class addpurchasebill
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -246,9 +249,6 @@ namespace SmartMoon.MVC.Migrations
                     b.Property<int?>("BuyBillId")
                         .HasColumnType("int");
 
-                    b.Property<int>("InventoryId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
@@ -258,14 +258,12 @@ namespace SmartMoon.MVC.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Total")
+                    b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BuyBillId");
-
-                    b.HasIndex("InventoryId");
 
                     b.HasIndex("ProductId");
 
@@ -280,25 +278,15 @@ namespace SmartMoon.MVC.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("CashPaid")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("DiscountAmount")
+                    b.Property<decimal?>("DiscountAmount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("MoneyDrawer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("RemainingBalance")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SupplierId")
                         .HasColumnType("int");
@@ -373,13 +361,6 @@ namespace SmartMoon.MVC.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("CurrentBalance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -553,19 +534,11 @@ namespace SmartMoon.MVC.Migrations
                         .WithMany("BillItems")
                         .HasForeignKey("BuyBillId");
 
-                    b.HasOne("SmartMoon.MVC.Models.Entities.Inventory", "Inventory")
-                        .WithMany()
-                        .HasForeignKey("InventoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SmartMoon.MVC.Models.Entities.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Inventory");
 
                     b.Navigation("Product");
                 });

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SmartMoon.MVC.Models.Data;
 using SmartMoon.MVC.Models.Entities;
@@ -120,6 +121,80 @@ namespace SmartMoon.MVC.Controllers
                 }
             }
             return RedirectToAction("ViewProducts");
+        }
+        public IActionResult CreatePurchaseBill()
+        {
+            var model = new PurchaseBillViewModel
+            {
+                Suppliers = context.suppliers.ToList(),
+                Inventories = context.inventories.ToList(),
+                Products = context.products.ToList(),
+                MoneyDrawers = context.moneyDrawer.ToList(),
+                Items = new List<BillItemViewModel>()
+            };
+            return View(model);
+        }
+        [HttpPost]
+        public IActionResult CreatePurchaseBill(PurchaseBillViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Calculate Remaining Balance
+                model.RemainingBalance = model.TotalAmount - model.DiscountAmount - model.CashPaid;
+
+                // Create Bill entity
+                var bill = new BuyBill
+                {
+                    SupplierId = model.SupplierId,
+                    PaymentMethod = model.PaymentMethod,
+                    DiscountAmount = model.DiscountAmount,
+                    CashPaid = model.CashPaid,
+                    RemainingBalance = model.RemainingBalance,
+                    MoneyDrawer = model.MoneyDrawer,
+                    TotalAmount = model.TotalAmount,
+                    Date = DateTime.Now,
+                    BillItems = model.Items.Select(item => new BillItem
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        PurchasePrice = item.PurchasePrice,
+                        SalePrice = item.SalePrice,
+                        InventoryId = item.InventoryId
+                    }).ToList()
+                };
+
+                context.buyBill.Add(bill);
+                context.SaveChanges();
+
+                // Redirect to a summary or details page
+                return RedirectToAction("BillSummary", new { id = bill.Id });
+            }
+
+            // If model state is invalid, reload dropdowns
+            model.Suppliers = context.suppliers.ToList();
+
+            model.Products = context.products.ToList();
+            model.Inventories = context.inventories.ToList();
+
+            return View(model);
+        }
+
+        public IActionResult BillSummary(int id)
+        {
+            var bill = context.buyBill
+                .Include(b => b.Supplier)
+                .Include(b => b.BillItems)
+                    .ThenInclude(bi => bi.Product)
+                .Include(b => b.BillItems)
+                    .ThenInclude(bi => bi.Inventory)
+                .FirstOrDefault(b => b.Id == id);
+
+            if (bill == null)
+            {
+                return NotFound();
+            }
+
+            return View(bill);
         }
     }
 }

@@ -3,5 +3,6 @@
     public class SalesBill
     {
         public int Id { get; set; }
+        
     }
 }

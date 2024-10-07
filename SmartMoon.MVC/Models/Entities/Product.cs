@@ -11,8 +11,8 @@ namespace SmartMoon.MVC.Models.Entities
         public int Quantity { get; set; }
         public decimal Price { get; set; }
 
-        
-        public ICollection<ProductSupplier> productSuppliers { get; set;} 
+        public ICollection<Inventory>? inventories { get; set; }
+        public ICollection<ProductSupplier>? productSuppliers { get; set;} 
 
     }
 }

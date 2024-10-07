@@ -19,6 +19,7 @@ namespace SmartMoon.MVC.Models.Entities
         public string? SecondRepresentativePhoneNumber { get; set; }
 
         public ICollection<ProductSupplier> productSuppliers { get; set;}
+        public ICollection<BuyBill> Bills { get; set; }
 
     }
 }
