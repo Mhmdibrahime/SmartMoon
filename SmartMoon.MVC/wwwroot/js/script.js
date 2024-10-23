@@ -11,31 +11,32 @@ $(document).ready(function () {
     let items = [];
 
     $('.add-price-btn').on('click', function () {
-        const item = $('#item').val();
+        //event.preventDefault();
+        const item = $('#ProductSelection').val();
         let quantity = parseFloat($('#quantity').val());
         let salePrice = parseFloat($('#SalePrice').val());
         let purchasePrice = parseFloat($('#PurchasePrice').val());
-        const store = $('#store').val();
+        const store = $('#InventorySelection').val();
 
         // Validation for required fields
-        if (item === '' || isNaN(quantity) || isNaN(salePrice) || isNaN(purchasePrice) || store === '') {
-            Swal.fire({
-                text: 'يرجى ملء جميع الحقول المطلوبة.',
-                icon: 'warning',
-                showConfirmButton: false,
-                timer: 2000,
-                toast: true,
-                position: 'top-end',
-                background: '#ffffff',
-                iconColor: '#d9534f',
-                customClass: {
-                    popup: 'small-toast',
-                    title: 'small-toast-title',
-                    content: 'small-toast-content'
-                }
-            });
-            return;
-        }
+        //if (item === '' || isNaN(quantity) || isNaN(salePrice) || isNaN(purchasePrice) || store === '') {
+        //    Swal.fire({
+        //        text: 'يرجى ملء جميع الحقول المطلوبة.',
+        //        icon: 'warning',
+        //        showConfirmButton: false,
+        //        timer: 2000,
+        //        toast: true,
+        //        position: 'top-end',
+        //        background: '#ffffff',
+        //        iconColor: '#d9534f',
+        //        customClass: {
+        //            popup: 'small-toast',
+        //            title: 'small-toast-title',
+        //            content: 'small-toast-content'
+        //        }
+        //    });
+        //    return;
+        //}
 
         // Validation for positive values of quantity and prices
         if (quantity <= 0 || salePrice <= 0 || purchasePrice <= 0) {

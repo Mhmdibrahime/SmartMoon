@@ -124,21 +124,27 @@ namespace SmartMoon.MVC.Controllers
         }
         public IActionResult CreatePurchaseBill()
         {
-            var model = new PurchaseBillViewModel
+            var inv = context.inventories.ToList();
+            var model = new PurchaseBillViewModel()
             {
                 Suppliers = context.suppliers.ToList(),
-                Inventories = context.inventories.ToList(),
+                
+                Inventories = inv,
                 Products = context.products.ToList(),
                 MoneyDrawers = context.moneyDrawer.ToList(),
                 Items = new List<BillItemViewModel>()
             };
+
             return View(model);
         }
         [HttpPost]
+        [AutoValidateAntiforgeryToken]
         public IActionResult CreatePurchaseBill(PurchaseBillViewModel model)
         {
             if (ModelState.IsValid)
             {
+                model.TotalAmount = model.Items.Sum(item => item.PurchasePrice * item.Quantity);
+
                 // Calculate Remaining Balance
                 model.RemainingBalance = model.TotalAmount - model.DiscountAmount - model.CashPaid;
 

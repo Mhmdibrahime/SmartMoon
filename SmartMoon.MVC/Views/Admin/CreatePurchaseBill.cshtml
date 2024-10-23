@@ -75,12 +75,13 @@
                     <div class="custom-select">
                         <select id="InventorySelection" class="form-control">
                             <option value="">اختر المخزن</option>
-                            @foreach (var inventory in Model.Inventories)
+                            @foreach (var inv in Model.Inventories)
                             {
-                                <option value="@inventory.Id">@inventory.Name</option>
+                                
+                                <option value="@inv.Id">@inv.Name</option>
                             }
                         </select>
-                        <p id="available-quantity">الكمية المتوفرة: <span id="available-quantity-text">0</span></p>
+                        @* <p id="available-quantity">الكمية المتوفرة: <span id="available-quantity-text">0</span></p> *@
                     </div>
                 </div>
             </div>
@@ -90,14 +91,14 @@
                 <div class="column">
                     <label for="SalePrice">سعر البيع</label>
                     <div class="input-group">
-                        <input asp-for="Items[0].SalePrice" type="number" id="SalePrice" placeholder="ادخل سعر البيع" min="0" step="0.01" class="form-control" />
+                        <input  type="number" id="SalePrice" placeholder="ادخل سعر البيع" min="0" step="0.01" class="form-control" />
                     </div>
                 </div>
                 <div class="column">
                     <label for="PurchasePrice">سعر الشراء</label>
                     <div class="input-group">
-                        <input asp-for="Items[0].PurchasePrice" type="number" id="PurchasePrice" placeholder="ادخل سعر الشراء" min="0" step="0.01" class="form-control" />
-                        <button class="add-price-btn"><i class="bx bx-plus"></i></button>
+                        <input  type="number" id="PurchasePrice" placeholder="ادخل سعر الشراء" min="0" step="0.01" class="form-control" />
+                        <button class="add-price-btn" type="button"><i class="bx bx-plus"></i></button>
                     </div>
                 </div>
             </div>
@@ -251,11 +252,12 @@
                 </div>
             </div>
 
+            <button type="submit" class="save-btn">حفظ الفاتورة</button>
             <!-- الأزرار -->
-            <div class="buttons">
+            @* <div class="buttons">
                 <button type="submit" class="save-btn">حفظ الفاتورة</button>
                 <button type="button" class="print-btn">طباعة الفاتورة</button>
-            </div>
+            </div> *@
         </form>
     </section>
 

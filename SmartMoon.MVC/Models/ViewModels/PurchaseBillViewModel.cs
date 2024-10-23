@@ -5,9 +5,16 @@ namespace SmartMoon.MVC.Models.ViewModels
 {
     public class PurchaseBillViewModel
     {
+        public PurchaseBillViewModel()
+        {
+            Suppliers = new List<Supplier>();
+            Products = new List<Product>(); 
+            Inventories = new List<Inventory>();
+            MoneyDrawers = new List<MoneyDrawer>();
+        }
         public Supplier Supplier { get; set; }
         public int SupplierId { get; set; } // Selected Supplier ID
-        public List<Supplier> Suppliers { get; set; } // Dropdown list of suppliers
+        public List<Supplier> Suppliers { get; set; } 
         public List<Product> Products { get; set; }
         public List<BillItemViewModel> Items { get; set; } // List of items in the bill
 
@@ -22,6 +29,6 @@ namespace SmartMoon.MVC.Models.ViewModels
         public decimal CashPaid { get; set; } // Cash amount paid
         public decimal RemainingBalance { get; set; } // Remaining balance after payment
         public string MoneyDrawer {  get; set; }
-        public List<MoneyDrawer> MoneyDrawers { get; set; }
+        public List<MoneyDrawer> MoneyDrawers { get; set; } 
     }
 }
