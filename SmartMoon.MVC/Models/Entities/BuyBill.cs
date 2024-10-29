@@ -14,7 +14,7 @@
         public int SupplierId { get; set; }
         public Supplier Supplier { get; set; }
 
-        public ICollection<BillItem> BillItems { get; set; } // List of items in the bill
+        public ICollection<BuyBillItem> BillItems { get; set; } // List of items in the bill
         
     }
 }

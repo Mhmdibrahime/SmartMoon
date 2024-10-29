@@ -23,9 +23,7 @@ namespace SmartMoon.MVC.Models.ViewModels
         
         public List<BillItemViewModel> Items { get; set; } // List of items in the bill
 
-        [ValidateNever]
-        public Inventory Inventory { get; set; }
-        public int InventoryId { get; set; } // Store/Inventory ID
+       
         [ValidateNever]
         public List<Inventory> Inventories { get; set; } // Dropdown list of stores
 

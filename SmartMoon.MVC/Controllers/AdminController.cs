@@ -139,7 +139,7 @@ namespace SmartMoon.MVC.Controllers
         }
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult CreatePurchaseBill([FromBody] PurchaseBillViewModel model)
+        public IActionResult CreatePurchaseBill(PurchaseBillViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -159,12 +159,13 @@ namespace SmartMoon.MVC.Controllers
                     MoneyDrawer = model.MoneyDrawer,
                     TotalAmount = model.TotalAmount,
                     Date = DateTime.Now,
-                    BillItems = model.Items.Select(item => new BillItem
+                    BillItems = model.Items.Select(item => new BuyBillItem
                     {
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
                         PurchasePrice = item.PurchasePrice,
                         SalePrice = item.SalePrice,
+                        Total=item.Total,
                         InventoryId = item.InventoryId
                     }).ToList()
                 };
@@ -172,8 +173,8 @@ namespace SmartMoon.MVC.Controllers
                 context.buyBill.Add(bill);
                 context.SaveChanges();
 
-                // Redirect to a summary or details page
-                return RedirectToAction("BillSummary", new { id = bill.Id });
+               
+                return RedirectToAction("Index", "Home");
             }
 
             // If model state is invalid, reload dropdowns
@@ -184,23 +185,54 @@ namespace SmartMoon.MVC.Controllers
 
             return View(model);
         }
-
-        public IActionResult BillSummary(int id)
+        [HttpGet]
+        public IActionResult CreateSalesBill()
         {
-            var bill = context.buyBill
-                .Include(b => b.Supplier)
-                .Include(b => b.BillItems)
-                    .ThenInclude(bi => bi.Product)
-                .Include(b => b.BillItems)
-                    .ThenInclude(bi => bi.Inventory)
-                .FirstOrDefault(b => b.Id == id);
-
-            if (bill == null)
+            var model = new SalesBillViewModel
             {
-                return NotFound();
+                clients = context.clients.ToList(),
+                MoneyDrawers = context.moneyDrawer.ToList(),
+                products = context.products.ToList(),
+                Items = new List<SalesBillItemViewModel>()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CreateSalesBill(SalesBillViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var salesBill = new SalesBill
+                {
+                    ClientId = model.ClientId,
+                    TotalAmount = model.TotalAmount,
+                    DiscountAmount = model.DiscountAmount,
+                    CashPaid = model.CashPaid,
+                    RemainingBalance = model.RemainingBalance,
+                    Date = DateTime.Now,
+                    Items = model.Items.Select(i => new SalesBillItem
+                    {
+                        ProductId = i.ProductId,
+                        Quantity = i.Quantity,
+                        SalePrice = i.SalePrice,
+                        TotalPrice = i.TotalPrice
+                    }).ToList()
+                };
+
+                context.salesBill.Add(salesBill);
+                context.SaveChanges();
+
+                return RedirectToAction("Index","Home");
             }
 
-            return View(bill);
+            // Reload customers and money drawers if validation fails
+            model.clients = context.clients.ToList();
+            model.MoneyDrawers = context.moneyDrawer.ToList();
+            return View(model);
         }
+
     }
 }

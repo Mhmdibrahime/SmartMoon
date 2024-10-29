@@ -1,6 +1,6 @@
 ﻿namespace SmartMoon.MVC.Models.Entities
 {
-    public class BillItem
+    public class BuyBillItem
     {
         public int Id { get; set; }
         public int ProductId { get; set; }

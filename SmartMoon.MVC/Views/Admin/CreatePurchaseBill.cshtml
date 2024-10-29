@@ -104,13 +104,12 @@
                 <input type="hidden" name="TotalAmount" id="TotalAmount" value="0" />
             </div>
 
-
             <!-- Discount and Payment Information -->
             <div class="row">
                 <div class="column">
                     <label for="DiscountAmount">الخصم</label>
-                    <input type="number" id="DiscountAmount" placeholder="ادخل قيمة الخصم" class="form-control" min="0" step="0.01" />
-                    <select id="DiscountType" class="form-control">
+                    <input asp-for="DiscountAmount" id="DiscountAmount" placeholder="ادخل قيمة الخصم" class="form-control" min="0" step="0.01" />
+                    <select id="DiscountType" class="form-control" name="DiscountType">
                         <option value="Percentage">نسبة</option>
                         <option value="Amount">مبلغ</option>
                     </select>
@@ -125,36 +124,37 @@
                     </div>
                     <div class="column">
                         <label for="CashPaid">المبلغ نقداً</label>
-                        <input type="number" id="CashPaid" class="form-control" placeholder="ادخل المبلغ" min="0" step="0.01" />
+                        <input asp-for="CashPaid" id="CashPaid" class="form-control" placeholder="ادخل المبلغ" min="0" step="0.01" />
                     </div>
-                <div class="column">
-                    <label for="MoneyDrawerId">الخزنة</label>
-                    <select asp-for="MoneyDrawer" class="form-control">
-                        <option value="">اختر الخزنة</option>
-                        @foreach (var drawer in Model.MoneyDrawers)
-                        {
-                            <option value="@drawer.Name">@drawer.Name</option>
-                        }
-                    </select>
+                    <div class="column">
+                        <label for="MoneyDrawerId">الخزنة</label>
+                        <select asp-for="MoneyDrawer" class="form-control">
+                            <option value="">اختر الخزنة</option>
+                            @foreach (var drawer in Model.MoneyDrawers)
+                            {
+                                <option value="@drawer.Name">@drawer.Name</option>
+                            }
+                        </select>
+                    </div>
                 </div>
             </div>
+
             <div class="remaining">
                 <p>المتبقي: <span id="remaining-amount-text">0</span> جنيه</p>
                 <input type="hidden" name="RemainingBalance" id="RemainingBalance" value="0" />
             </div>
+
             <!-- Action Buttons -->
-            <button type="submit" id="save-bill-btn" onclick="saveBill()">حفظ الفاتورة</button>
+            <button type="submit" >حفظ الفاتورة</button>
             <button type="button" onclick="window.print()" class="print-btn">طباعة الفاتورة</button>
         </form>
     </section>
 
-
-
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-                $(document).ready(function () {
+        $(document).ready(function () {
             let totalAmount = 0;
+            let itemIndex = 0;
 
             // Function to add an item to the invoice table
             $("#add-item-btn").click(function () {
@@ -163,6 +163,7 @@
                 const quantity = parseFloat($("#Quantity").val()) || 0;
                 const purchasePrice = parseFloat($("#PurchasePrice").val()) || 0;
                 const salePrice = parseFloat($("#SalePrice").val()) || 0;
+                const inventoryId = $("#InventorySelection").val();
                 const inventoryName = $("#InventorySelection option:selected").text();
                 const totalPrice = quantity * purchasePrice;
 
@@ -173,18 +174,19 @@
 
                 // Append row to invoice table
                 $("#invoice-body").append(`
-                                <tr>
-                                    <td>${productName}</td>
-                                    <td>${quantity}</td>
-                                    <td>${purchasePrice}</td>
-                                    <td>${salePrice}</td>
-                                    <td class="item-total">${totalPrice.toFixed(2)}</td>
-                                    <td>${inventoryName}</td>
-                                    <td><button type="button" class="edit-btn">تعديل</button></td>
-                                    <td><button type="button" class="delete-btn">حذف</button></td>
-                                </tr>
-                            `);
+                                 <tr>
+                                     <td>${productName}<input type="hidden" name="Items[${itemIndex}].ProductId" value="${productId}" /></td>
+                                     <td>${quantity}<input type="hidden" name="Items[${itemIndex}].Quantity" value="${quantity}" /></td>
+                                     <td>${purchasePrice}<input type="hidden" name="Items[${itemIndex}].PurchasePrice" value="${purchasePrice}" /></td>
+                                     <td>${salePrice}<input type="hidden" name="Items[${itemIndex}].SalePrice" value="${salePrice}" /></td>
+                                     <td class="item-total">${totalPrice.toFixed(2)}</td>
+                                     <td>${inventoryName}<input type="hidden" name="Items[${itemIndex}].InventoryId" value="${inventoryId}" /></td>
+                                     <td><button type="button" class="edit-btn">تعديل</button></td>
+                                     <td><button type="button" class="delete-btn">حذف</button></td>
+                                 </tr>
+                             `);
 
+                itemIndex++;
                 totalAmount += totalPrice;
                 updateTotals();
 
@@ -254,68 +256,10 @@
                 $("#RemainingBalance").val(remainingBalance.toFixed(2));
             }
 
-            function saveBill() {
-                // Gather all items from the invoice table
-                let items = [];
-                $("#invoice-body tr").each(function () {
-                    let row = $(this);
-                    let productId = $("#ProductSelection option:contains(" + row.find("td:eq(0)").text() + ")").val(); // Get the productId from the dropdown
-                    let quantity = parseFloat(row.find("td:eq(1)").text()) || 0;
-                    let purchasePrice = parseFloat(row.find("td:eq(2)").text()) || 0;
-                    let salePrice = parseFloat(row.find("td:eq(3)").text()) || 0;
-                    let inventoryId = $("#InventorySelection option:contains(" + row.find("td:eq(5)").text() + ")").val(); // Get the inventoryId from the dropdown
 
-                    items.push({
-                        ProductId: productId, // Adjusted to match your model
-                        Quantity: quantity,
-                        PurchasePrice: purchasePrice,
-                        SalePrice: salePrice,
-                        InventoryId: inventoryId // Added this field
-                    });
-                });
 
-                // Prepare the data to send to the server
-                const dataToSend = {
-                    SupplierId: $("#SupplierId").val(),
-                    Items: items,
-                    TotalAmount: totalAmount, // Ensure you have the correct totalAmount calculated
-                    DiscountAmount: parseFloat($("#DiscountAmount").val()) || 0, // Ensure discount amount is included
-                    CashPaid: parseFloat($("#CashPaid").val()) || 0, // Cash paid amount
-                    MoneyDrawer: $("#MoneyDrawer").val(),
-                    PaymentMethod: $("#PaymentMethod").val(), // Include payment method if you have a dropdown for it
-                    RemainingBalance: remainingBalance
-                };
 
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "/Admin/CreatePurchaseBill", true);
-                xhr.setRequestHeader("Content-Type", "application/json");
-
-                // Set up a function to handle the response
-                xhr.onload = function () {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        alert("تم حفظ الفاتورة بنجاح!");
-                        // Reset the form
-                        $("#invoice-body").empty();
-                        $("#SupplierId").val('');
-                        totalAmount = 0;
-                        $("#total-amount-text").text(totalAmount.toFixed(2));
-                        $("#TotalAmount").val(totalAmount.toFixed(2));
-                    } else {
-                        alert("حدث خطأ في حفظ الفاتورة: " + xhr.responseText);
-                    }
-                };
-
-                // Send the request with the JSON stringified data
-                xhr.send(JSON.stringify(dataToSend));
-            }
-
-            // Optionally, bind saveBill function to a button if needed
-            $("#save-bill-btn").click(saveBill);
         });
-        </script>
-       
-   
-
+    </script>
 </body>
 </html>
-

@@ -13,12 +13,15 @@ namespace SmartMoon.MVC.Models.Data
         public DbSet<Client> clients { get; set; }
         public DbSet<Supplier> suppliers { get; set; }
         public DbSet<SalesBill> salesBill { get; set; }
+        public DbSet<SalesBillItem> salesBillItems { get; set; }
         public DbSet<BuyBill> buyBill { get; set; } 
-        public DbSet<BillItem> billItems { get; set; }
+        public DbSet<BuyBillItem> buyBillItems { get; set; }
         public DbSet<Inventory> inventories { get; set; } 
         public DbSet<MoneyDrawer> moneyDrawer { get; set; }
         public DbSet<Product> products { get; set; }
         public DbSet<ProductSupplier> productSuppliers { get; set; }
+        public DbSet<Expense> expense { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
