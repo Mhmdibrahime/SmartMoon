@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SmartMoon.MVC.Models.Entities;
 
 namespace SmartMoon.MVC.Models.ViewModels
@@ -12,14 +13,20 @@ namespace SmartMoon.MVC.Models.ViewModels
             Inventories = new List<Inventory>();
             MoneyDrawers = new List<MoneyDrawer>();
         }
+        [ValidateNever]
         public Supplier Supplier { get; set; }
         public int SupplierId { get; set; } // Selected Supplier ID
-        public List<Supplier> Suppliers { get; set; } 
+        [ValidateNever]
+        public List<Supplier> Suppliers { get; set; }
+        [ValidateNever]
         public List<Product> Products { get; set; }
+        
         public List<BillItemViewModel> Items { get; set; } // List of items in the bill
 
+        [ValidateNever]
         public Inventory Inventory { get; set; }
         public int InventoryId { get; set; } // Store/Inventory ID
+        [ValidateNever]
         public List<Inventory> Inventories { get; set; } // Dropdown list of stores
 
         public decimal TotalAmount { get; set; } // Total amount
@@ -29,6 +36,7 @@ namespace SmartMoon.MVC.Models.ViewModels
         public decimal CashPaid { get; set; } // Cash amount paid
         public decimal RemainingBalance { get; set; } // Remaining balance after payment
         public string MoneyDrawer {  get; set; }
+        [ValidateNever]
         public List<MoneyDrawer> MoneyDrawers { get; set; } 
     }
 }

@@ -139,7 +139,7 @@ namespace SmartMoon.MVC.Controllers
         }
         [HttpPost]
         [AutoValidateAntiforgeryToken]
-        public IActionResult CreatePurchaseBill(PurchaseBillViewModel model)
+        public IActionResult CreatePurchaseBill([FromBody] PurchaseBillViewModel model)
         {
             if (ModelState.IsValid)
             {
