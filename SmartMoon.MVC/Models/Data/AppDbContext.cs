@@ -20,6 +20,7 @@ namespace SmartMoon.MVC.Models.Data
         public DbSet<MoneyDrawer> moneyDrawer { get; set; }
         public DbSet<Product> products { get; set; }
         public DbSet<ProductSupplier> productSuppliers { get; set; }
+        public DbSet<InventoryProduct> inventoryProducts { get; set; }
         public DbSet<Expense> expense { get; set; }
         
 

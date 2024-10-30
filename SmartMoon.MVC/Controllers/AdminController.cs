@@ -192,6 +192,7 @@ namespace SmartMoon.MVC.Controllers
             {
                 clients = context.clients.ToList(),
                 MoneyDrawers = context.moneyDrawer.ToList(),
+                inventories = context.inventories.ToList(), 
                 products = context.products.ToList(),
                 Items = new List<SalesBillItemViewModel>()
             };
@@ -212,6 +213,7 @@ namespace SmartMoon.MVC.Controllers
                     DiscountAmount = model.DiscountAmount,
                     CashPaid = model.CashPaid,
                     RemainingBalance = model.RemainingBalance,
+                    MoneyDrawer = model.MoneyDrawer,
                     Date = DateTime.Now,
                     Items = model.Items.Select(i => new SalesBillItem
                     {
@@ -231,7 +233,21 @@ namespace SmartMoon.MVC.Controllers
             // Reload customers and money drawers if validation fails
             model.clients = context.clients.ToList();
             model.MoneyDrawers = context.moneyDrawer.ToList();
+            model.inventories = context.inventories.ToList();
+               model.products = context.products.ToList();
             return View(model);
+        }
+        [HttpGet]
+        public IActionResult GetAvailableStock(int productId, int inventoryId)
+        {
+            
+            var availableQuantity = context.inventoryProducts
+                                    .Where(ip => ip.ProductId == productId && ip.InventoryId == inventoryId)
+                                    
+                                    .FirstOrDefault();
+
+            
+            return Json(new { availableQuantity = availableQuantity });
         }
 
     }

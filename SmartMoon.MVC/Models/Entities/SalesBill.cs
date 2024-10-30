@@ -9,6 +9,7 @@
         public decimal DiscountAmount { get; set; }
         public decimal CashPaid { get; set; }
         public decimal RemainingBalance { get; set; }
+        public string MoneyDrawer { get; set; }
         public DateTime Date { get; set; }
 
         // Navigation property for related entities

@@ -11,6 +11,8 @@ namespace SmartMoon.MVC.Models.ViewModels
         public List<Client> clients { get; set; }
         [ValidateNever]
         public List<Product> products { get; set; }
+        [ValidateNever]
+        public List<Inventory> inventories { get; set; }  
 
         [Required]
         public List<SalesBillItemViewModel> Items { get; set; }
@@ -27,6 +29,6 @@ namespace SmartMoon.MVC.Models.ViewModels
         public string PaymentMethod { get; set; }
         [ValidateNever]
         public List<MoneyDrawer> MoneyDrawers { get; set; }
-        public int MoneyDrawerId { get; set; }
+        public string MoneyDrawer { get; set; }
     }
 }
