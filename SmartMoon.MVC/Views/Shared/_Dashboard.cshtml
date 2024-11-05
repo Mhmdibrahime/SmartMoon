@@ -97,7 +97,7 @@
                     <i class="bx bx-chevron-down dropdown-icon"></i>
                 </a>
                 <ul class="sub-menu">
-                    <li><a href="الموقف المالي.html"><i class="bx bx-bar-chart-alt"></i>الموقف المالي</a></li>
+                    <li><a asp-action="FinancialPosition" asp-controller="Admin"><i class="bx bx-bar-chart-alt"></i>الموقف المالي</a></li>
                     <li><a href="حركه صنف.html"><i class="bx bx-layer"></i>حركة صنف</a></li>
                     <li><a href="تقرير مصروفات.html"><i class="bx bx-money"></i>مصروفات يومية</a></li>
                     <li><a href="مبيعات اليوم.html"><i class="bx bx-cart"></i>مبيعات يومية</a></li>
@@ -125,8 +125,8 @@
                     <i class="bx bx-chevron-down dropdown-icon"></i>
                 </a>
                 <ul class="sub-menu">
-                    <li><a href="نواقص الاصناف.html"><i class="bx bx-error-alt"></i>نواقص الأصناف</a></li>
-                    <li><a href="الأقساط المتأخرة.html"><i class="bx bx-time-five"></i>الأقساط المتأخرة</a></li>
+                    <li><a asp-action="ViewProductsShortcomings" asp-controller="Admin"><i class="bx bx-error-alt"></i>نواقص الأصناف</a></li>
+                    <li><a asp-action="LateInstallments" asp-controller="Admin"><i class="bx bx-time-five"></i>الأقساط المتأخرة</a></li>
                 </ul>
                 <span class="tooltip">التنبيهات</span>
             </li>

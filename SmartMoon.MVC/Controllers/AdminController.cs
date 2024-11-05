@@ -123,6 +123,17 @@ namespace SmartMoon.MVC.Controllers
             }
             return RedirectToAction("ViewProducts");
         }
+        [HttpGet]
+        public IActionResult DeleteProduct(int id)
+        {
+            var product = context.products.FirstOrDefault(p => p.Id == id);
+            if(product != null)
+            {
+                context.products.Remove(product);
+                context.SaveChanges();
+            }
+            return RedirectToAction("ViewProductsShortcomings");
+        }
         public IActionResult CreatePurchaseBill()
         {
             var inv = context.inventories.ToList();
@@ -262,6 +273,11 @@ namespace SmartMoon.MVC.Controllers
                         TotalPrice = i.TotalPrice
                     }).ToList()
                 };
+                var client = context.clients.FirstOrDefault(x => x.Id == model.ClientId);
+                if(client != null && model.RemainingBalance != 0)
+                {
+                    client.Balance -= model.RemainingBalance;
+                }
                 var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
                 moneyDrawer.CurrentBalance += model.TotalAmount;
                 context.moneyDrawer.Update(moneyDrawer);
@@ -1160,6 +1176,60 @@ namespace SmartMoon.MVC.Controllers
                 .Select(p => new { p.Id, p.Name, p.Price })
                 .ToListAsync();
             return Ok(products);
+        }
+        [HttpGet]
+        public IActionResult ViewProductsShortcomings()
+        {
+            var products = context.products.Where(x=>x.Quantity==0).ToList();
+            return View(products);
+        }
+        [HttpGet]
+        public async Task<IActionResult> LateInstallments()
+        {
+            int overdueThresholdDays = 30; // Define what counts as "late" (e.g., 30 days overdue)
+            DateTime currentDate = DateTime.Now;
+
+
+            var lateInstallments = context.salesBill
+                .Where(bill => bill.RemainingBalance > 0)
+                .AsEnumerable()
+                .Where(bill => (currentDate - bill.Date).TotalDays > overdueThresholdDays)
+                .Select(bill => new LateInstallmentsViewModel
+                {
+                    Id = bill.client.Id,
+                    Name = bill.client.Name,
+                    PhoneNumber = bill.client.PhoneNumber,
+                    Balance = bill.client.Balance,
+                    DaysLate = (int)(currentDate - bill.Date).TotalDays
+                })
+                .ToList();
+
+
+            return View(lateInstallments);
+        }
+        public IActionResult FinancialPosition()
+        {
+            var forClients = context.clients.Where(x=>x.Balance > 0).Sum(x=>x.Balance);
+            var onClients = context.clients.Where(x=>x.Balance < 0).Sum(x=>x.Balance);
+            var onSuppliers = context.suppliers.Where(x=>x.Balance < 0).Sum(x=>x.Balance);
+            var forSuppliers = context.suppliers.Where(x=>x.Balance > 0).Sum(x=>x.Balance);
+            var drawersBalance = context.moneyDrawer.Sum(x => x.CurrentBalance);
+            var inventoriesBalance =  context.inventoryProducts.Sum(ip => ip.Quantity * ip.Product.Price);
+            var model = new FinancialPositionViewModel
+            {
+                ForClients = forClients,
+                OnClients = Math.Abs(onClients),
+                OnSuppliers = Math.Abs(onSuppliers),
+                ForSuppliers = forSuppliers,
+                DrawersActualBalance = drawersBalance,
+                InventoriesActualBalance = inventoriesBalance,
+                ActualTotalBalance = drawersBalance+inventoriesBalance,
+                TotalForUs = Math.Abs(onClients) + Math.Abs(onSuppliers),
+                TotalOnUs = forClients+forSuppliers,
+                
+            };
+            model.FinalPosition = (model.ActualTotalBalance + model.TotalForUs) - model.TotalOnUs;
+            return View(model);
         }
     }
 }

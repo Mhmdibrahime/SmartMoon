@@ -28,6 +28,8 @@ namespace SmartMoon.MVC.Models.Data
         public DbSet<Expense> expense { get; set; }
         public DbSet<ClientReceipt> clientReceipts { get; set; }
         public DbSet<SupplierReceipt> supplierReceipts { get; set; }
+        public DbSet<InventoryProductBatch> inventoryProductBatches { get; set; }
+        public DbSet<ProductBatch> productBatches { get; set; }
         
 
         protected override void OnModelCreating(ModelBuilder builder)
