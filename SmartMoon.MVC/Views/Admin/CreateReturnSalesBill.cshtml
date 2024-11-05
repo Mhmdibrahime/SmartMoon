@@ -1,6 +1,7 @@
-﻿@model PurchaseBillViewModel
+﻿@model SalesBillViewModel
 @{
-    ViewData["Title"] = "CreateBill";
+    ViewData["Title"] = "CreateReturnSalesBill";
+    Layout = "_Dashboard";
 }
 
 <!DOCTYPE html>
@@ -17,37 +18,37 @@
 <body>
     <section class="invoice-section">
         <div class="separator">
-            <h2>فاتوره شراء جديده</h2>
+            <h2>فاتوره مرتجع مبيعات</h2>
         </div>
 
-        <form method="post" asp-action="CreatePurchaseBill" asp-controller="Admin">
+        <form method="post" asp-action="CreateReturnSalesBill" asp-controller="Admin">
             @Html.AntiForgeryToken()
 
-            <!-- Supplier Selection -->
+            <!-- Customer Selection -->
             <div class="row">
                 <div class="column">
-                    <label for="SupplierId">اختيار المورد</label>
+                    <label for="CustomerId">اختيار العميل</label>
                     <div class="custom-select">
-                        <select asp-for="SupplierId" class="form-control">
-                            <option value="">اختر المورد</option>
-                            @foreach (var supplier in Model.Suppliers)
+                        <select asp-for="ClientId" class="form-control">
+                            <option value="">اختر العميل</option>
+                            @foreach (var customer in Model.clients)
                             {
-                                <option value="@supplier.Id">@supplier.Name</option>
+                                <option value="@customer.Id">@customer.Name</option>
                             }
                         </select>
-                        <button asp-action="AddSupplier" asp-controller="Admin" type="button" class="add-btn" id="add-custom">إضافة مورد</button>
+                        
                     </div>
                 </div>
             </div>
 
-            <!-- Product Details -->
+
             <!-- Product Details -->
             <div class="row">
                 <div class="column">
                     <label for="ProductSelection">اختيار الصنف</label>
                     <select id="ProductSelection" class="form-control">
                         <option value="">اختر الصنف</option>
-                        @foreach (var product in Model.Products)
+                        @foreach (var product in Model.products)
                         {
                             <option value="@product.Id">@product.Name</option>
                         }
@@ -61,7 +62,7 @@
                     <label for="InventorySelection">المخزن</label>
                     <select id="InventorySelection" class="form-control">
                         <option value="">اختر المخزن</option>
-                        @foreach (var inv in Model.Inventories)
+                        @foreach (var inv in Model.inventories)
                         {
                             <option value="@inv.Id">@inv.Name</option>
                         }
@@ -71,14 +72,11 @@
                 </div>
             </div>
 
+
             <div class="row">
                 <div class="column">
                     <label for="SalePrice">سعر البيع</label>
                     <input type="number" id="SalePrice" placeholder="ادخل سعر البيع" min="0" step="0.01" class="form-control" />
-                </div>
-                <div class="column">
-                    <label for="PurchasePrice">سعر الشراء</label>
-                    <input type="number" id="PurchasePrice" placeholder="ادخل سعر الشراء" min="0" step="0.01" class="form-control" />
                     <button type="button" id="add-item-btn">+</button>
                 </div>
             </div>
@@ -89,7 +87,6 @@
                     <tr>
                         <th>الصنف</th>
                         <th>الكمية</th>
-                        <th>سعر الشراء</th>
                         <th>سعر البيع</th>
                         <th>الإجمالي</th>
                         <th>المخزن</th>
@@ -117,28 +114,26 @@
                         <option value="Amount">مبلغ</option>
                     </select>
                 </div>
-                <div class="row">
-                    <div class="column">
-                        <label for="PaymentMethod">طريقة الدفع</label>
-                        <select asp-for="PaymentMethod" class="form-control">
-                            <option value="كاش">كاش</option>
-                            <option value="آجل">آجل</option>
-                        </select>
-                    </div>
-                    <div class="column">
-                        <label for="CashPaid">المبلغ نقداً</label>
-                        <input asp-for="CashPaid" id="CashPaid" class="form-control" placeholder="ادخل المبلغ" min="0" step="0.01" />
-                    </div>
-                    <div class="column">
-                        <label for="MoneyDrawerId">الخزنة</label>
-                        <select asp-for="MoneyDrawer" class="form-control">
-                            <option value="">اختر الخزنة</option>
-                            @foreach (var drawer in Model.MoneyDrawers)
-                            {
-                                <option value="@drawer.Name">@drawer.Name</option>
-                            }
-                        </select>
-                    </div>
+                <div class="column">
+                    <label for="PaymentMethod">طريقة الدفع</label>
+                    <select asp-for="PaymentMethod" class="form-control">
+                        <option value="كاش">كاش</option>
+                        <option value="آجل">آجل</option>
+                    </select>
+                </div>
+                <div class="column">
+                    <label for="CashPaid">المبلغ نقداً</label>
+                    <input asp-for="CashPaid" id="CashPaid" class="form-control" placeholder="ادخل المبلغ" min="0" step="0.01" />
+                </div>
+                <div class="column">
+                    <label for="MoneyDrawerId">الخزنة</label>
+                    <select asp-for="MoneyDrawer" class="form-control">
+                        <option value="">اختر الخزنة</option>
+                        @foreach (var drawer in Model.MoneyDrawers)
+                        {
+                            <option value="@drawer.Name">@drawer.Name</option>
+                        }
+                    </select>
                 </div>
             </div>
 
@@ -148,7 +143,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <button type="submit" >حفظ الفاتورة</button>
+            <button type="submit">حفظ الفاتورة</button>
             <button type="button" onclick="window.print()" class="print-btn">طباعة الفاتورة</button>
         </form>
     </section>
@@ -187,62 +182,65 @@
             $("#ProductSelection").change(updateAvailableQuantity);
             $("#InventorySelection").change(updateAvailableQuantity);
 
-            // Function to add an item to the invoice table
+            // Function to add an item to the sales invoice
             $("#add-item-btn").click(function () {
                 const productId = $("#ProductSelection").val();
                 const productName = $("#ProductSelection option:selected").text();
                 const quantity = parseFloat($("#Quantity").val()) || 0;
-                const purchasePrice = parseFloat($("#PurchasePrice").val()) || 0;
                 const salePrice = parseFloat($("#SalePrice").val()) || 0;
+                const availableStock = parseFloat($("#AvailableStock").val()) || 0;
                 const inventoryId = $("#InventorySelection").val();
                 const inventoryName = $("#InventorySelection option:selected").text();
-                const totalPrice = quantity * purchasePrice;
+                const TotalPrice = quantity * salePrice;
 
-                if (!productId || !quantity || !purchasePrice) {
-                    alert("Please fill all required fields!");
+                // Validations for sale context
+                if (!productId || !quantity || !salePrice) {
+                    alert("Please select a product, enter a quantity, and specify a sale price.");
                     return;
                 }
 
-                // Append row to invoice table
+
+                // Append row to the sales invoice table
                 $("#invoice-body").append(`
-                                 <tr>
-                                     <td>${productName}<input type="hidden" name="Items[${itemIndex}].ProductId" value="${productId}" /></td>
-                                     <td>${quantity}<input type="hidden" name="Items[${itemIndex}].Quantity" value="${quantity}" /></td>
-                                     <td>${purchasePrice}<input type="hidden" name="Items[${itemIndex}].PurchasePrice" value="${purchasePrice}" /></td>
-                                     <td>${salePrice}<input type="hidden" name="Items[${itemIndex}].SalePrice" value="${salePrice}" /></td>
-                                     <td class="item-total">${totalPrice.toFixed(2)}</td>
-                                     <td>${inventoryName}<input type="hidden" name="Items[${itemIndex}].InventoryId" value="${inventoryId}" /></td>
-                                     <td><button type="button" class="edit-btn">تعديل</button></td>
-                                     <td><button type="button" class="delete-btn">حذف</button></td>
-                                 </tr>
-                             `);
+                                <tr>
+                                    <td>${productName}<input type="hidden" name="Items[${itemIndex}].ProductId" value="${productId}" /></td>
+                                    <td>${quantity}<input type="hidden" name="Items[${itemIndex}].Quantity" value="${quantity}" /></td>
+                                    <td>${salePrice.toFixed(2)}<input type="hidden" name="Items[${itemIndex}].SalePrice" value="${salePrice}" /></td>
+                                    <td>${TotalPrice.toFixed(2)}<input type="hidden" name="Items[${itemIndex}].TotalPrice" value="${TotalPrice}" /></td>
+
+                                    <td>${inventoryName}<input type="hidden" name="Items[${itemIndex}].InventoryId" value="${inventoryId}" /></td>
+                                    <td><button type="button" class="edit-btn">Edit</button></td>
+                                    <td><button type="button" class="delete-btn">Delete</button></td>
+                                </tr>
+                            `);
 
                 itemIndex++;
-                totalAmount += totalPrice;
+                totalAmount += TotalPrice;
                 updateTotals();
 
                 // Clear input fields
                 $("#ProductSelection").val("");
                 $("#Quantity").val("");
-                $("#PurchasePrice").val("");
                 $("#SalePrice").val("");
+                $("#TotalPrice").val("");
+                $("#AvailableStock").val("");
                 $("#InventorySelection").val("");
             });
 
-            // Edit and update an item in the invoice table
+            // Edit item in the sales invoice
             $("#invoice-body").on("click", ".edit-btn", function () {
                 const row = $(this).closest("tr");
                 const productName = row.find("td:nth-child(1)").text();
                 const quantity = parseFloat(row.find("td:nth-child(2)").text());
-                const purchasePrice = parseFloat(row.find("td:nth-child(3)").text());
-                const salePrice = parseFloat(row.find("td:nth-child(4)").text());
+                const salePrice = parseFloat(row.find("td:nth-child(3)").text());
 
+                // Populate fields for editing
                 $("#ProductSelection option:contains(" + productName + ")").prop("selected", true);
                 $("#Quantity").val(quantity);
-                $("#PurchasePrice").val(purchasePrice);
                 $("#SalePrice").val(salePrice);
 
-                totalAmount -= parseFloat(row.find(".item-total").text());
+                // Adjust total amount and remove row
+                totalAmount -= parseFloat(row.find(".line-total").text());
                 row.remove();
                 updateTotals();
             });
@@ -254,16 +252,16 @@
                 updateRemainingBalance();
             }
 
-            // Delete an item from the invoice
+            // Delete item from sales invoice
             $("#invoice-body").on("click", ".delete-btn", function () {
                 const row = $(this).closest("tr");
-                const itemTotal = parseFloat(row.find(".item-total").text()) || 0;
-                totalAmount -= itemTotal;
+                const lineTotal = parseFloat(row.find(".line-total").text()) || 0;
+                totalAmount -= lineTotal;
                 row.remove();
                 updateTotals();
             });
 
-            // Update remaining balance when cash paid is entered
+            // Update remaining balance based on discount and payment
             $("#CashPaid, #DiscountAmount, #DiscountType").on("input change", updateRemainingBalance);
 
             function updateRemainingBalance() {
@@ -271,7 +269,7 @@
                 const discountAmount = parseFloat($("#DiscountAmount").val()) || 0;
                 const discountType = $("#DiscountType").val();
 
-                // Calculate the discount based on its type
+                // Calculate discount based on its type
                 let totalDiscount = 0;
                 if (discountType === "Percentage") {
                     totalDiscount = (discountAmount / 100) * totalAmount;
@@ -286,11 +284,8 @@
                 $("#remaining-amount-text").text(remainingBalance.toFixed(2));
                 $("#RemainingBalance").val(remainingBalance.toFixed(2));
             }
-
-
-
-
         });
     </script>
+
 </body>
 </html>

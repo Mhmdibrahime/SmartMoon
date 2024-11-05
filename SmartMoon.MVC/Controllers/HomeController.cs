@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartMoon.MVC.Models;
+using SmartMoon.MVC.Models.Data;
+using SmartMoon.MVC.Models.ViewModels;
 using System.Diagnostics;
 
 namespace SmartMoon.MVC.Controllers
@@ -7,15 +9,21 @@ namespace SmartMoon.MVC.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly AppDbContext context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger,AppDbContext context)
         {
             _logger = logger;
+            this.context = context;
         }
 
         public IActionResult Index()
         {
-            return View();
+            var model = new HomePageViewModel
+            {
+                moneyDrawers = context.moneyDrawer.ToList()
+            };
+            return View(model);
         }
 
         public IActionResult Privacy()

@@ -12,16 +12,22 @@ namespace SmartMoon.MVC.Models.Data
         public DbSet<ApplicationUser> users { get; set; }
         public DbSet<Client> clients { get; set; }
         public DbSet<Supplier> suppliers { get; set; }
+        public DbSet<SalesReturnBill> salesReturnBills { get; set; }
         public DbSet<SalesBill> salesBill { get; set; }
-        public DbSet<SalesBillItem> salesBillItems { get; set; }
+        public DbSet<SalesReturnBillItem> salesReturnBillItems { get; set; }
+        public DbSet<SalesBillItem> SalesBillItem { get; set; }
         public DbSet<BuyBill> buyBill { get; set; } 
+        public DbSet<PurchaseReturnBill> purchaseReturnBills { get; set; } 
         public DbSet<BuyBillItem> buyBillItems { get; set; }
+        public DbSet<PurchaseReturnBillItem> purchaseReturnBillItems { get; set; }
         public DbSet<Inventory> inventories { get; set; } 
         public DbSet<MoneyDrawer> moneyDrawer { get; set; }
         public DbSet<Product> products { get; set; }
         public DbSet<ProductSupplier> productSuppliers { get; set; }
         public DbSet<InventoryProduct> inventoryProducts { get; set; }
         public DbSet<Expense> expense { get; set; }
+        public DbSet<ClientReceipt> clientReceipts { get; set; }
+        public DbSet<SupplierReceipt> supplierReceipts { get; set; }
         
 
         protected override void OnModelCreating(ModelBuilder builder)

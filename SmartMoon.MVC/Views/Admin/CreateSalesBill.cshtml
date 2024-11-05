@@ -41,6 +41,7 @@
                 </div>
             </div>
 
+            
             <!-- Product Details -->
             <div class="row">
                 <div class="column">
@@ -66,8 +67,11 @@
                             <option value="@inv.Id">@inv.Name</option>
                         }
                     </select>
+                    <!-- Available quantity display -->
+                    <p id="available-quantity">الكمية المتوفرة: <span id="available-quantity-text">0</span></p>
                 </div>
             </div>
+
 
             <div class="row">
                 <div class="column">
@@ -150,6 +154,34 @@
             let totalAmount = 0;
             let itemIndex = 0;
 
+            function updateAvailableQuantity() {
+                const productId = $("#ProductSelection").val();
+                const inventoryId = $("#InventorySelection").val();
+
+                // Check if both product and inventory are selected
+                if (productId && inventoryId) {
+                    $.ajax({
+                        url: '/Admin/GetAvailableStock', // Replace with your actual endpoint
+                        type: 'GET',
+                        data: { productId: productId, inventoryId: inventoryId },
+                        success: function (data) {
+                            // Update the available quantity text with the returned data
+                            $("#available-quantity-text").text(data.availableQuantity);
+                        },
+                        error: function () {
+                            alert("Error fetching available quantity. Please try again.");
+                        }
+                    });
+                } else {
+                    // Clear the available quantity if either product or inventory is not selected
+                    $("#available-quantity-text").text(0);
+                }
+            }
+
+            // Trigger the update when product or inventory selection changes
+            $("#ProductSelection").change(updateAvailableQuantity);
+            $("#InventorySelection").change(updateAvailableQuantity);
+
             // Function to add an item to the sales invoice
             $("#add-item-btn").click(function () {
                 const productId = $("#ProductSelection").val();
@@ -159,7 +191,7 @@
                 const availableStock = parseFloat($("#AvailableStock").val()) || 0;
                 const inventoryId = $("#InventorySelection").val();
                 const inventoryName = $("#InventorySelection option:selected").text();
-                const lineTotal = quantity * salePrice;
+                const TotalPrice = quantity * salePrice;
 
                 // Validations for sale context
                 if (!productId || !quantity || !salePrice) {
@@ -174,7 +206,8 @@
                             <td>${productName}<input type="hidden" name="Items[${itemIndex}].ProductId" value="${productId}" /></td>
                             <td>${quantity}<input type="hidden" name="Items[${itemIndex}].Quantity" value="${quantity}" /></td>
                             <td>${salePrice.toFixed(2)}<input type="hidden" name="Items[${itemIndex}].SalePrice" value="${salePrice}" /></td>
-                            <td class="line-total">${lineTotal.toFixed(2)}</td>
+                            <td>${TotalPrice.toFixed(2)}<input type="hidden" name="Items[${itemIndex}].TotalPrice" value="${TotalPrice}" /></td>
+                            
                             <td>${inventoryName}<input type="hidden" name="Items[${itemIndex}].InventoryId" value="${inventoryId}" /></td>
                             <td><button type="button" class="edit-btn">Edit</button></td>
                             <td><button type="button" class="delete-btn">Delete</button></td>
@@ -182,13 +215,14 @@
                     `);
 
                 itemIndex++;
-                totalAmount += lineTotal;
+                totalAmount += TotalPrice;
                 updateTotals();
 
                 // Clear input fields
                 $("#ProductSelection").val("");
                 $("#Quantity").val("");
                 $("#SalePrice").val("");
+                $("#TotalPrice").val("");
                 $("#AvailableStock").val("");
                 $("#InventorySelection").val("");
             });

@@ -17,6 +17,7 @@ namespace SmartMoon.MVC.Models.Entities
         public string? MobileNumber { get; set;}
         [MaxLength(15)]
         public string? PhoneNumber { get; set; }
+        public decimal Balance { get; set; } = 0;
 
     }
 }

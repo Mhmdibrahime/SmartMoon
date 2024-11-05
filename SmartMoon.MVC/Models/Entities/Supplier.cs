@@ -17,7 +17,7 @@ namespace SmartMoon.MVC.Models.Entities
         public string? SecondRepresentativeName { get; set; }
         [MaxLength(15)]
         public string? SecondRepresentativePhoneNumber { get; set; }
-
+        public decimal Balance { get; set; } = 0;
         public ICollection<ProductSupplier> productSuppliers { get; set;}
         public ICollection<BuyBill> Bills { get; set; }
 

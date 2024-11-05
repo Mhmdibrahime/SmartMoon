@@ -1,5 +1,7 @@
-﻿@{
+﻿@model HomePageViewModel
+@{
     ViewData["Title"] = "Home Page";
+    
 }
 
 <!DOCTYPE html>
@@ -13,142 +15,6 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading-screen">
-        <div class="spinner"></div>
-        <p>جاري التحميل...</p>
-    </div>
-
-    @* <div class="sidebar">
-        <div class="logo_details">
-            <i class="bx bx-moon icon"></i>
-            <div class="logo_name">سمارت مون</div>
-            <i class="bx bx-menu" id="btn"></i>
-        </div>
-        <ul class="nav-list">
-            <li>
-                <i class="bx bx-search"></i>
-                <input type="text" placeholder="بحث...">
-                <span class="tooltip">بحث</span>
-            </li>
-            <li>
-            <li>
-                <a href="الرئيسيه.html">
-                    <i class="bx bx-home"></i>
-                    <span class="link_name">الرئيسيه</span>
-                </a>
-                <span class="tooltip">الرئيسيه</span>
-            </li>
-
-            <!-- العملاء مع قائمة فرعية -->
-            <li>
-                <a href="#">
-                    <i class="bx bx-user"></i>
-                    <span class="link_name">العملاء</span>
-                    <i class="bx bx-chevron-down dropdown-icon"></i>
-                </a>
-                <ul class="sub-menu">
-                    <li><a href="ايصال استلام عميل .html"><i class="bx bx-receipt"></i>ايصال استلام</a></li>
-                    <li><a href="ايصال صرف عميل.html"><i class="bx bx-receipt"></i>ايصال صرف</a></li>
-                    <li><a href="عرض العملاء.html"><i class="bx bx-user"></i>عرض العملاء</a></li>
-                </ul>
-                <span class="tooltip">العملاء</span>
-            </li>
-            <li>
-                <a href="#">
-                    <i class="bx bx-package"></i>
-                    <span class="link_name">الموردين</span>
-                    <i class="bx bx-chevron-down dropdown-icon"></i>
-                </a>
-                <ul class="sub-menu">
-                    <li><a href="ايصال استلام مورد.html"><i class="bx bx-receipt"></i>ايصال استلام</a></li>
-                    <li><a href="ايصال صرف مورد.html"><i class="bx bx-receipt"></i>ايصال صرف</a></li>
-                    <li><a href="عرض موردين.html"><i class="bx bx-group"></i>عرض الموردين</a></li>
-                </ul>
-                <span class="tooltip">الموردين</span>
-            </li>
-
-
-            <!-- عروض الاسعار -->
-            <li>
-                <a href="عروض اسعار.html">
-                    <i class="bx bx-tag"></i>
-                    <span class="link_name">عروض الاسعار</span>
-                </a>
-                <span class="tooltip">عروض الاسعار</span>
-            </li>
-
-            <!-- الموظفين والرواتب مع قائمة فرعية -->
-            <li>
-                <a href="#">
-                    <i class="bx bx-building"></i>
-                    <span class="link_name">الموظفين والرواتب</span>
-                    <i class="bx bx-chevron-down dropdown-icon"></i>
-                </a>
-                <ul class="sub-menu">
-                    <li><a href="قائمه الموظفين.html"><i class="bx bx-group"></i>قائمة الموظفين</a></li>
-                    <li><a href="صرف مرتبات.html"><i class="bx bx-money"></i>صرف مرتبات</a></li>
-                    <li><a href="تسجيل السلف و الحوافز و الخصومات.html"><i class="bx bx-credit-card"></i>سلفه - حافز - خصم</a></li>
-                </ul>
-                <span class="tooltip">الموظفين والرواتب</span>
-            </li>
-
-            <!-- التقارير مع قائمة فرعية -->
-            <li>
-                <a href="#">
-                    <i class="bx bx-line-chart"></i>
-                    <span class="link_name">التقارير</span>
-                    <i class="bx bx-chevron-down dropdown-icon"></i>
-                </a>
-                <ul class="sub-menu">
-                    <li><a href="الموقف المالي.html"><i class="bx bx-bar-chart-alt"></i>الموقف المالي</a></li>
-                    <li><a href="حركه صنف.html"><i class="bx bx-layer"></i>حركة صنف</a></li>
-                    <li><a href="تقرير مصروفات.html"><i class="bx bx-money"></i>مصروفات يومية</a></li>
-                    <li><a href="مبيعات اليوم.html"><i class="bx bx-cart"></i>مبيعات يومية</a></li>
-                    <li><a href="عمليات درج .html"><i class="bx bx-wallet"></i>عمليات درج اليوم</a></li>
-                    <li><a href="تقرير صافي الربح.html"><i class="bx bx-trending-up"></i>صافى الربح خلال مدة زمنية</a></li>
-
-                </ul>
-                <span class="tooltip">التقارير</span>
-            </li>
-
-            <!-- الإعدادات -->
-            <li>
-                <a href="الاعدادات.html">
-                    <i class="bx bx-cog"></i>
-                    <span class="link_name">الإعدادات</span>
-                </a>
-                <span class="tooltip">الإعدادات</span>
-            </li>
-
-            <!-- التنبيهات -->
-            <li>
-                <a href="#">
-                    <i class="bx bx-bell"></i>
-                    <span class="link_name">التنبيهات</span>
-                    <i class="bx bx-chevron-down dropdown-icon"></i>
-                </a>
-                <ul class="sub-menu">
-                    <li><a href="نواقص الاصناف.html"><i class="bx bx-error-alt"></i>نواقص الأصناف</a></li>
-                    <li><a href="الأقساط المتأخرة.html"><i class="bx bx-time-five"></i>الأقساط المتأخرة</a></li>
-                </ul>
-                <span class="tooltip">التنبيهات</span>
-            </li>
-
-
-            <li class="profile">
-                <div class="profile_details">
-                    <i class="bx bx-user"></i>
-                    <div class="profile_content">
-                        <div class="name">سامي</div>
-                        <div class="designation">مدير</div>
-                    </div>
-                </div>
-                <i class="bx bx-log-out" id="log_out"></i>
-            </li>
-        </ul>
-    </div> *@
-
     <div class="card-container">
         <div class="card" id="card1">
             <a asp-action="CreateSalesBill" asp-controller="Admin">
@@ -157,8 +23,10 @@
             </a>
         </div>
         <div class="card" id="card4">
+            <a asp-action="CreateReturnSalesBill" asp-controller="Admin">
             <i class='bx bx-undo icon'></i>
             <div class="card-title">فاتورة مرتجع مبيعات</div>
+            </a>
         </div>
         <div class="card" id="card2">
             <a asp-action="CreatePurchaseBill" asp-controller="Admin">
@@ -167,8 +35,10 @@
             </a>
         </div>
         <div class="card" id="card3">
+            <a asp-action="CreatePurchaseReturnBill" asp-controller="Admin">
             <i class='bx bx-receipt icon'></i>
             <div class="card-title">فاتورة مرتجع مشتريات</div>
+            </a>
         </div>
         <div class="card" id="card5">
             <a asp-action="AddClient" asp-controller="Admin">
@@ -189,16 +59,22 @@
             </a>
         </div>
         <div class="card" id="card9">
+            <a asp-action="AddExpense" asp-controller="Admin">
             <i class='bx bx-briefcase icon'></i>
-            <div class="card-title">سجـل مصــــروف</div>
+                <div class="card-title">سجـل مصــــروف</div>
+            </a>
         </div>
         <div class="card" id="card10">
+            <a asp-action="TransferBetweenInventories" asp-controller="Admin">
             <i class='bx bx-transfer icon'></i>
-            <div class="card-title">تحويل بين المخازن</div>
+                <div class="card-title">تحويل بين المخازن</div>
+            </a>
         </div>
         <div class="card" id="card8">
+            <a asp-action="TransferBetweenMoneyDrawers" asp-controller="Admin">
             <i class='bx bx-sync icon'></i>
-            <div class="card-title">تحويل بين الخزن</div>
+             <div class="card-title">تحويل بين الخزن</div>
+            </a>
         </div>
 
         <div class="separator">
@@ -206,36 +82,14 @@
         </div>
 
         <div class="unique-cards-section">
-            <div class="card uniqe">
-                <i class='bx bx-money-withdraw icon'></i>
-                <div class="card-title">درج النقديه</div>
-                <div class="card-value">0.00 جنيه</div>
-            </div>
-            <div class="card uniqe">
-                <i class='bx bx-dollar-circle icon'></i>
-                <div class="card-title">درج المعرض</div>
-                <div class="card-value">0.00 جنيه</div>
-            </div>
-            <div class="card uniqe">
-                <i class='bx bxs-bank icon'></i>
-                <div class="card-title">بنك مصر</div>
-                <div class="card-value">0.00 جنيه</div>
-            </div>
-            <div class="card uniqe">
-                <i class='bx bx-wallet icon'></i>
-                <div class="card-title">فودافون كاش سمارت مون</div>
-                <div class="card-value">0.00 جنيه</div>
-            </div>
-            <div class="card uniqe">
-                <i class='bx bx-money icon'></i>
-                <div class="card-title">درج السيارة</div>
-                <div class="card-value">0.00 جنيه</div>
-            </div>
-            <div class="card uniqe">
-                <i class='bx bx-wallet icon'></i>
-                <div class="card-title">فودافون كاش ابو عبده</div>
-                <div class="card-value">0.00 جنيه</div>
-            </div>
+            @foreach (var drawer in Model.moneyDrawers)
+            {
+                <div class="card uniqe">
+                    <i class='bx bx-dollar-circle icon'></i>
+                    <div class="card-title">@drawer.Name</div>
+                    <div class="card-value">@drawer.CurrentBalance جنيه</div>
+                </div>
+            }
         </div>
     </div>
 

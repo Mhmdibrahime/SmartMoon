@@ -1,7 +1,10 @@
 ﻿@model PurchaseBillViewModel
 @{
-    ViewData["Title"] = "CreateBill";
+    ViewData["Title"] = "CreatePurchaseReturnBill";
+    Layout = "_Dashboard";
 }
+
+
 
 <!DOCTYPE html>
 <html lang="ar">
@@ -17,10 +20,10 @@
 <body>
     <section class="invoice-section">
         <div class="separator">
-            <h2>فاتوره شراء جديده</h2>
+            <h2>فاتوره مرتجع مشتريات</h2>
         </div>
 
-        <form method="post" asp-action="CreatePurchaseBill" asp-controller="Admin">
+        <form method="post" asp-action="CreatePurchaseReturnBill" asp-controller="Admin">
             @Html.AntiForgeryToken()
 
             <!-- Supplier Selection -->
@@ -35,7 +38,7 @@
                                 <option value="@supplier.Id">@supplier.Name</option>
                             }
                         </select>
-                        <button asp-action="AddSupplier" asp-controller="Admin" type="button" class="add-btn" id="add-custom">إضافة مورد</button>
+                        
                     </div>
                 </div>
             </div>
@@ -148,7 +151,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <button type="submit" >حفظ الفاتورة</button>
+            <button type="submit">حفظ الفاتورة</button>
             <button type="button" onclick="window.print()" class="print-btn">طباعة الفاتورة</button>
         </form>
     </section>
@@ -205,17 +208,17 @@
 
                 // Append row to invoice table
                 $("#invoice-body").append(`
-                                 <tr>
-                                     <td>${productName}<input type="hidden" name="Items[${itemIndex}].ProductId" value="${productId}" /></td>
-                                     <td>${quantity}<input type="hidden" name="Items[${itemIndex}].Quantity" value="${quantity}" /></td>
-                                     <td>${purchasePrice}<input type="hidden" name="Items[${itemIndex}].PurchasePrice" value="${purchasePrice}" /></td>
-                                     <td>${salePrice}<input type="hidden" name="Items[${itemIndex}].SalePrice" value="${salePrice}" /></td>
-                                     <td class="item-total">${totalPrice.toFixed(2)}</td>
-                                     <td>${inventoryName}<input type="hidden" name="Items[${itemIndex}].InventoryId" value="${inventoryId}" /></td>
-                                     <td><button type="button" class="edit-btn">تعديل</button></td>
-                                     <td><button type="button" class="delete-btn">حذف</button></td>
-                                 </tr>
-                             `);
+                                         <tr>
+                                             <td>${productName}<input type="hidden" name="Items[${itemIndex}].ProductId" value="${productId}" /></td>
+                                             <td>${quantity}<input type="hidden" name="Items[${itemIndex}].Quantity" value="${quantity}" /></td>
+                                             <td>${purchasePrice}<input type="hidden" name="Items[${itemIndex}].PurchasePrice" value="${purchasePrice}" /></td>
+                                             <td>${salePrice}<input type="hidden" name="Items[${itemIndex}].SalePrice" value="${salePrice}" /></td>
+                                             <td class="item-total">${totalPrice.toFixed(2)}</td>
+                                             <td>${inventoryName}<input type="hidden" name="Items[${itemIndex}].InventoryId" value="${inventoryId}" /></td>
+                                             <td><button type="button" class="edit-btn">تعديل</button></td>
+                                             <td><button type="button" class="delete-btn">حذف</button></td>
+                                         </tr>
+                                     `);
 
                 itemIndex++;
                 totalAmount += totalPrice;

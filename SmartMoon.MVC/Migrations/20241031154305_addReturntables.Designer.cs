@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartMoon.MVC.Models.Data;
 
@@ -11,9 +12,11 @@ using SmartMoon.MVC.Models.Data;
 namespace SmartMoon.MVC.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241031154305_addReturntables")]
+    partial class addReturntables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -314,9 +317,6 @@ namespace SmartMoon.MVC.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("MobileNumber")
                         .HasMaxLength(11)
                         .HasColumnType("nvarchar(11)");
@@ -338,33 +338,6 @@ namespace SmartMoon.MVC.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("clients");
-                });
-
-            modelBuilder.Entity("SmartMoon.MVC.Models.Entities.ClientReceipt", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ClientId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("clientReceipts");
                 });
 
             modelBuilder.Entity("SmartMoon.MVC.Models.Entities.Expense", b =>
@@ -702,7 +675,10 @@ namespace SmartMoon.MVC.Migrations
                     b.Property<decimal>("SalePrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("SalesReturnBillId")
+                    b.Property<int>("SalesBillId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SalesReturnBillId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
@@ -713,6 +689,8 @@ namespace SmartMoon.MVC.Migrations
                     b.HasIndex("InventoryId");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("SalesBillId");
 
                     b.HasIndex("SalesReturnBillId");
 
@@ -731,9 +709,6 @@ namespace SmartMoon.MVC.Migrations
                         .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("FirstRepresentativeName")
                         .HasMaxLength(255)
@@ -759,33 +734,6 @@ namespace SmartMoon.MVC.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("suppliers");
-                });
-
-            modelBuilder.Entity("SmartMoon.MVC.Models.Entities.SupplierReceipt", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("AmountPaid")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("supplierReceipts");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -871,17 +819,6 @@ namespace SmartMoon.MVC.Migrations
                     b.Navigation("Inventory");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("SmartMoon.MVC.Models.Entities.ClientReceipt", b =>
-                {
-                    b.HasOne("SmartMoon.MVC.Models.Entities.Client", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("SmartMoon.MVC.Models.Entities.Expense", b =>
@@ -1030,28 +967,21 @@ namespace SmartMoon.MVC.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartMoon.MVC.Models.Entities.SalesReturnBill", "SalesBill")
-                        .WithMany("Items")
-                        .HasForeignKey("SalesReturnBillId")
+                    b.HasOne("SmartMoon.MVC.Models.Entities.SalesBill", "SalesBill")
+                        .WithMany()
+                        .HasForeignKey("SalesBillId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("SmartMoon.MVC.Models.Entities.SalesReturnBill", null)
+                        .WithMany("Items")
+                        .HasForeignKey("SalesReturnBillId");
 
                     b.Navigation("Inventory");
 
                     b.Navigation("Product");
 
                     b.Navigation("SalesBill");
-                });
-
-            modelBuilder.Entity("SmartMoon.MVC.Models.Entities.SupplierReceipt", b =>
-                {
-                    b.HasOne("SmartMoon.MVC.Models.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("SmartMoon.MVC.Models.Entities.BuyBill", b =>

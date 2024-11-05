@@ -1,0 +1,126 @@
+﻿@model TransferMoneyViewModel
+@{
+    ViewData["Title"] = "TransferBetweenMoneyDrawers";
+    Layout = "_Dashboard";
+}
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    
+
+    <section class="transfer-section">
+        <div class="separator">
+            <h2>تحويل بين الخزن</h2>
+        </div>
+
+        <!-- إضافة خزنة جديدة -->
+        <form asp-action="AddNewMoneyDrawer" asp-controller="Admin" method="post">
+        <div class="row">
+            <div class="column flex-input-btn">
+                <label for="new-vault">تسجيل خزنة جديدة</label>
+                <div class="input-group">
+                    <input asp-for="NewMoneyDarwer"  placeholder="أدخل اسم الخزنة الجديدة">
+                   
+                </div>
+                    <button type="submit" class="save-vault-btn">حفظ الخزنة</button>
+            </div>
+        </div>
+        </form>
+        <form asp-action="SaveTransfer" asp-controller="Admin" method="post">
+        <!-- اختيار الخزن للتحويل -->
+        <div class="row">
+            <!-- اختيار الخزنة التي سننقل منها -->
+            <div class="column">
+                <label for="from-vault">الخزنة التي ستنقل منها</label>
+                <select asp-for="FromId" id="from-vault">
+                    <option value="">اختر الخزنة</option>
+                    @foreach(var drawer in Model.moneyDrawers)
+                    {
+                        <option value="@drawer.Id">@drawer.Name</option>
+                    }
+
+                </select>
+            </div>
+
+            <!-- اختيار الخزنة التي ستنقل إليها -->
+            <div class="column">
+                <label for="to-vault">الخزنة التي ستنقل إليها</label>
+                <select asp-for="ToId" id="to-vault">
+                    <option disabled>اختر الخزنة</option>
+                    @foreach (var drawer in Model.moneyDrawers)
+                    {
+                        <option value="@drawer.Id">@drawer.Name</option>
+                    }
+                   
+                </select>
+            </div>
+                <div class="column flex-input-btn">
+                    <label for="new-vault">المبلغ المراد نقله</label>
+                    <div class="input-group">
+                        <input asp-for="TotalAmount"  placeholder="أدخل المبلغ">
+                        
+                    </div>
+                </div>
+
+                <!-- زرار الحفظ -->
+                <div class="buttons">
+                    <button type="submit" class="save-transfer-btn">حفظ التحويل</button>
+                </div>
+        </div>
+            
+        </form>
+        <!-- جدول تحويل الخزن -->
+        <table class="transfer-table vault-table">
+            <thead>
+                <tr>
+                    <th>اسم الخزنة</th>
+                    <th>المبلغ الحالي</th>
+                </tr>
+            </thead>
+            <tbody id="vault-transfer-body">
+                @foreach(var drawer in Model.moneyDrawers)
+                {
+                    <tr>
+                        <td>@drawer.Name</td>
+                        <td>@drawer.CurrentBalance</td>
+
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+
+      
+
+       
+    </section>
+
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/script.js"></script>
+    <script src="~/js/تحويل بين الخزن.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,190 @@
+﻿@model TransferProductsViewModels
+@{
+    ViewData["Title"] = "TransferBetweenInventories";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    <section class="transfer-section">
+        <div class="separator">
+            <h2>تحويل بين المخازن</h2>
+        </div>
+
+        <!-- الصف الأول: تسجيل مخزن جديد -->
+        <div class="row">
+            <form asp-action="AddNewInventory" asp-controller="Admin" method="post">
+            <div class="column flex-input-btn">
+                <label for="new-store">تسجيل مخزن جديد</label>
+                <div class="input-group">
+                    <input asp-for="Name" id="new-store" placeholder="أدخل المخزن الجديد">
+                    <button type="submit" class="save-store-btn">حفظ المخزن</button>
+                </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Inventory Selection and Search Form -->
+        <div class="transfer-controls">
+            <label for="from-store">اختر المخزن</label>
+            <select id="from-store">
+                <option value="">-- اختر المخزن --</option>
+                @foreach (var inventory in Model.inventories)
+                {
+                    <option value="@inventory.Id">@inventory.Name</option>
+                }
+            </select>
+
+            <label for="to-store">إلى المخزن</label>
+            <select id="to-store">
+                <option value="">-- اختر المخزن --</option>
+                @foreach (var inventory in Model.inventories)
+                {
+                    <option value="@inventory.Id">@inventory.Name</option>
+                }
+            </select>
+
+            <input type="text" id="search-item" placeholder="بحث باسم الصنف">
+        </div>
+
+        <!-- Traditional Form for Submission -->
+        <form id="transferForm" method="post" asp-action="SaveTransferBetweenInventories" asp-controller="Admin">
+            <!-- Hidden fields for fromInventoryId and toInventoryId -->
+            <input type="hidden" name="FromInventoryId" id="fromInventoryId">
+            <input type="hidden" name="ToInventoryId" id="toInventoryId">
+
+            <!-- Products Table -->
+            <table class="transfer-table">
+                <thead>
+                    <tr>
+                        <th>اسم الصنف</th>
+                        <th>المخزن</th>
+                        <th>الكمية المتاحة</th>
+                        <th>الكمية المراد نقلها</th>
+                    </tr>
+                </thead>
+                <tbody id="transfer-body">
+                    <!-- Product rows will be populated here dynamically by JavaScript -->
+                </tbody>
+            </table>
+
+            <!-- Container for dynamic transfer items -->
+            <div id="transferItemsContainer"></div>
+
+            <!-- Save Transfer Button -->
+            <button type="submit" class="save-transfer-btn">حفظ التحويل</button>
+        </form>
+    </section>
+
+    <!-- jQuery (required for the script) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        // JavaScript code to populate the form with dynamic data
+        $(document).ready(function () {
+            // Load products when "from-store" changes
+            $('#from-store').on('change', function () {
+                const fromInventoryId = $(this).val();
+                const searchQuery = $('#search-item').val();
+                loadProducts(fromInventoryId, searchQuery);
+            });
+
+            // Filter products by name as the user types
+            $('#search-item').on('input', function () {
+                const fromInventoryId = $('#from-store').val();
+                const searchQuery = $(this).val();
+                loadProducts(fromInventoryId, searchQuery);
+            });
+
+            // Load products based on selected inventory and search query
+            function loadProducts(fromInventoryId, searchQuery) {
+                if (!fromInventoryId) return;
+
+                $.ajax({
+                    url: '/Admin/GetProducts',
+                    data: { fromInventoryId, searchQuery },
+                    success: function (products) {
+                        const tbody = $('#transfer-body');
+                        tbody.empty();
+                        products.forEach(product => {
+                            tbody.append(`
+                                <tr>
+                                    <td>${product.name}</td>
+                                    <td>${product.inventory}</td>
+                                    <td>${product.quantity}</td>
+                                    <td><input type="number" class="transfer-qty" data-product-id="${product.id}" placeholder="ادخل الكميه"></td>
+                                </tr>
+                            `);
+                        });
+                    }
+                });
+            }
+
+            // Save the transfer using a traditional form submission
+            $('.save-transfer-btn').on('click', function (event) {
+                event.preventDefault();  // Prevents default button behavior
+
+                const fromInventoryId = $('#from-store').val();
+                const toInventoryId = $('#to-store').val();
+                if (!fromInventoryId || !toInventoryId) {
+                    alert("Please select both inventories.");
+                    return;
+                }
+
+                // Set the from and to inventory IDs in hidden form fields
+                $('#fromInventoryId').val(fromInventoryId);
+                $('#toInventoryId').val(toInventoryId);
+
+                // Prepare transfers array and add each item to the form as hidden inputs
+                const transfers = [];
+                $('#transferItemsContainer').empty(); // Clear previous items
+                $('.transfer-qty').each(function (index) {
+                    const quantity = parseInt($(this).val());
+                    if (quantity > 0) {
+                        const productId = $(this).data('product-id');
+
+                        // Dynamically add transfer items to the form as hidden fields
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: `Transfers[${index}].ProductId`,
+                            value: productId
+                        }).appendTo('#transferItemsContainer');
+
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: `Transfers[${index}].Quantity`,
+                            value: quantity
+                        }).appendTo('#transferItemsContainer');
+                    }
+                });
+
+                if ($('#transferItemsContainer').children().length === 0) {
+                    alert("Please enter quantities to transfer.");
+                    return;
+                }
+
+                // Submit the form
+                $('#transferForm').submit();
+            });
+        });
+
+    </script>
+</body>
+</html>
