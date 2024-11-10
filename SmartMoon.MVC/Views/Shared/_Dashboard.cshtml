@@ -82,9 +82,9 @@
                     <i class="bx bx-chevron-down dropdown-icon"></i>
                 </a>
                 <ul class="sub-menu">
-                    <li><a href="قائمه الموظفين.html"><i class="bx bx-group"></i>قائمة الموظفين</a></li>
-                    <li><a href="صرف مرتبات.html"><i class="bx bx-money"></i>صرف مرتبات</a></li>
-                    <li><a href="تسجيل السلف و الحوافز و الخصومات.html"><i class="bx bx-credit-card"></i>سلفه - حافز - خصم</a></li>
+                    <li><a asp-action="ViewEmployees" asp-controller="Admin"><i class="bx bx-group"></i>قائمة الموظفين</a></li>
+                    <li><a asp-action="PayingSalaries" asp-controller="Admin"><i class="bx bx-money"></i>صرف مرتبات</a></li>
+                    <li><a asp-action="ViewAdvancesIncentivesAndDiscounts" asp-controller="Admin"><i class="bx bx-credit-card"></i>سلفه - حافز - خصم</a></li>
                 </ul>
                 <span class="tooltip">الموظفين والرواتب</span>
             </li>
@@ -98,11 +98,11 @@
                 </a>
                 <ul class="sub-menu">
                     <li><a asp-action="FinancialPosition" asp-controller="Admin"><i class="bx bx-bar-chart-alt"></i>الموقف المالي</a></li>
-                    <li><a href="حركه صنف.html"><i class="bx bx-layer"></i>حركة صنف</a></li>
-                    <li><a href="تقرير مصروفات.html"><i class="bx bx-money"></i>مصروفات يومية</a></li>
-                    <li><a href="مبيعات اليوم.html"><i class="bx bx-cart"></i>مبيعات يومية</a></li>
-                    <li><a href="عمليات درج .html"><i class="bx bx-wallet"></i>عمليات درج اليوم</a></li>
-                    <li><a href="تقرير صافي الربح.html"><i class="bx bx-trending-up"></i>صافى الربح خلال مدة زمنية</a></li>
+                    <li><a asp-action="ItemMovement" asp-controller="Admin"><i class="bx bx-layer"></i>حركة صنف</a></li>
+                    <li><a asp-action="ViewDailyExpenses" asp-controller="Admin"><i class="bx bx-money"></i>مصروفات يومية</a></li>
+                    <li><a asp-action="ViewDailySales" asp-controller="admin"><i class="bx bx-cart"></i>مبيعات يومية</a></li>
+                    <li><a asp-action="ViewDrawerOperations" asp-controller="Admin"><i class="bx bx-wallet"></i>عمليات درج اليوم</a></li>
+                    <li><a asp-action="ViewNetProfit" asp-controller="Admin"><i class="bx bx-trending-up"></i>صافى الربح خلال مدة زمنية</a></li>
 
                 </ul>
                 <span class="tooltip">التقارير</span>
@@ -110,7 +110,7 @@
 
             <!-- الإعدادات -->
             <li>
-                <a href="الاعدادات.html">
+                <a asp-action="AddUser" asp-controller="account">
                     <i class="bx bx-cog"></i>
                     <span class="link_name">الإعدادات</span>
                 </a>

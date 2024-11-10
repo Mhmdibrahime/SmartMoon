@@ -10,6 +10,7 @@ namespace SmartMoon.MVC.Models.Data
         public AppDbContext(DbContextOptions<AppDbContext> options):base(options) { }
         
         public DbSet<ApplicationUser> users { get; set; }
+        public DbSet<UserPermission> permissions { get; set; }
         public DbSet<Client> clients { get; set; }
         public DbSet<Supplier> suppliers { get; set; }
         public DbSet<SalesReturnBill> salesReturnBills { get; set; }
@@ -30,8 +31,9 @@ namespace SmartMoon.MVC.Models.Data
         public DbSet<SupplierReceipt> supplierReceipts { get; set; }
         public DbSet<InventoryProductBatch> inventoryProductBatches { get; set; }
         public DbSet<ProductBatch> productBatches { get; set; }
-        
-
+        public DbSet<Employee> employees { get; set; }
+        public DbSet<NetEmpSalary> netEmpSalaries { get; set; }
+        public DbSet<TotalSalaryRecord> totalSalaryRecords { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

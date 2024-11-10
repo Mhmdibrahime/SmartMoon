@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Versioning;
+using SmartMoon.MVC.Models.CustomAuthorization;
 using SmartMoon.MVC.Models.Data;
 using SmartMoon.MVC.Models.Entities;
 using SmartMoon.MVC.Models.ViewModels;
+using System.Linq;
 
 namespace SmartMoon.MVC.Controllers
 {
@@ -17,12 +19,15 @@ namespace SmartMoon.MVC.Controllers
             this.context = context;
         }
 
+        [AuthorizePermission("إضافة عميل")]
         public ActionResult AddClient() 
         {
             return View();
         }
+
         [HttpPost]
-        [ValidateAntiForgeryToken]  
+        [ValidateAntiForgeryToken]
+        [AuthorizePermission("إضافة عميل")]
         public IActionResult AddClient(NewClientViewModel model)
         {
             if (ModelState.IsValid)
@@ -82,27 +87,32 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
+        // View products and their suppliers
         public IActionResult ViewProducts()
         {
-            var productsWithSuppliers = context.products.
-                Include(x => x.productSuppliers).
-                ThenInclude(x => x.Supplier).ToList();
+            var productsWithSuppliers = context.products
+                .Include(x => x.productSuppliers)
+                .ThenInclude(x => x.Supplier)
+                .ToList();
+
             var products = productsWithSuppliers.Select(p => new ProductsViewModel
             {
-               
                 ProductName = p.Name,
                 Price = p.Price,
                 Quantity = p.Quantity,
-                SuppliersName = p.productSuppliers.Select(ps=>ps.Supplier.Name).ToList()
+                SuppliersName = p.productSuppliers.Select(ps => ps.Supplier.Name).ToList()
             }).ToList();
+
             var model = new ViewProductsWithSuppliersViewModel
             {
                 Products = products,
                 Suppliers = context.suppliers.ToList()
             };
+
             return View(model);
         }
 
+        // Add a new product
         public IActionResult AddProduct(ViewProductsWithSuppliersViewModel model)
         {
             if (ModelState.IsValid)
@@ -121,27 +131,37 @@ namespace SmartMoon.MVC.Controllers
                     throw new Exception();
                 }
             }
+
             return RedirectToAction("ViewProducts");
         }
+
+        // Delete a product and its related records
         [HttpGet]
         public IActionResult DeleteProduct(int id)
         {
             var product = context.products.FirstOrDefault(p => p.Id == id);
-            if(product != null)
+            if (product != null)
             {
+                var productBatches = context.productBatches.Where(pb => pb.ProductId == id).ToList();
+                context.productBatches.RemoveRange(productBatches);
+
+                var inventoryProducts = context.inventoryProducts.Where(ip => ip.ProductId == id).ToList();
+                context.inventoryProducts.RemoveRange(inventoryProducts);
+
                 context.products.Remove(product);
                 context.SaveChanges();
             }
+
             return RedirectToAction("ViewProductsShortcomings");
         }
+
+        [AuthorizePermission("إنشاء فاتورة مبيعات")]
         public IActionResult CreatePurchaseBill()
         {
-            var inv = context.inventories.ToList();
-            var model = new PurchaseBillViewModel()
+            var model = new PurchaseBillViewModel
             {
                 Suppliers = context.suppliers.ToList(),
-                
-                Inventories = inv,
+                Inventories = context.inventories.ToList(),
                 Products = context.products.ToList(),
                 MoneyDrawers = context.moneyDrawer.ToList(),
                 Items = new List<BillItemViewModel>()
@@ -149,26 +169,24 @@ namespace SmartMoon.MVC.Controllers
 
             return View(model);
         }
+
+        [AuthorizePermission("إنشاء فاتورة مبيعات")]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult CreatePurchaseBill(PurchaseBillViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Calculate total amount for the purchase bill
                 model.TotalAmount = model.Items.Sum(item => item.PurchasePrice * item.Quantity);
-
-                // Calculate remaining balance
                 model.RemainingBalance = model.TotalAmount - model.DiscountAmount - model.CashPaid;
 
-                // Create BuyBill entity
                 var bill = new BuyBill
                 {
                     SupplierId = model.SupplierId,
                     PaymentMethod = model.PaymentMethod,
                     DiscountAmount = model.DiscountAmount,
                     CashPaid = model.CashPaid,
-                    RemainingBalance = model.RemainingBalance,
+                    RemainingBalance =model.RemainingBalance,
                     MoneyDrawer = model.MoneyDrawer,
                     TotalAmount = model.TotalAmount,
                     Date = DateTime.Now,
@@ -182,33 +200,34 @@ namespace SmartMoon.MVC.Controllers
                         InventoryId = item.InventoryId
                     }).ToList()
                 };
-                var moneyDrawer = context.moneyDrawer.FirstOrDefault(x=>x.Name==model.MoneyDrawer);
-                moneyDrawer.CurrentBalance -= model.TotalAmount;
-                context.moneyDrawer.Update(moneyDrawer);
+
+                var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
+                if (moneyDrawer != null)
+                {
+                    moneyDrawer.CurrentBalance -= model.CashPaid;
+                    context.moneyDrawer.Update(moneyDrawer);
+                }
+
                 foreach (var item in model.Items)
                 {
-                    // Update the total quantity in the Products table
                     var product = context.products.FirstOrDefault(x => x.Id == item.ProductId);
                     if (product != null)
                     {
-                        product.Quantity += item.Quantity; // Increase the total product quantity
-                        product.Price = item.SalePrice; // Update the sale price
+                        product.Quantity += item.Quantity;
+                        product.Price = item.SalePrice;
                         context.products.Update(product);
                     }
 
-                    // Update the quantity in the InventoryProduct table
                     var inventoryProduct = context.inventoryProducts
                         .FirstOrDefault(ip => ip.ProductId == item.ProductId && ip.InventoryId == item.InventoryId);
 
                     if (inventoryProduct != null)
                     {
-                        // If the product already exists in this inventory, update the quantity
                         inventoryProduct.Quantity += item.Quantity;
                         context.inventoryProducts.Update(inventoryProduct);
                     }
                     else
                     {
-                        // If the product is not in this inventory, create a new InventoryProduct record
                         var newInventoryProduct = new InventoryProduct
                         {
                             ProductId = item.ProductId,
@@ -217,16 +236,26 @@ namespace SmartMoon.MVC.Controllers
                         };
                         context.inventoryProducts.Add(newInventoryProduct);
                     }
+
+                    // Create or update a batch for each item
+                    var productBatch = new ProductBatch
+                    {
+                        ProductId = item.ProductId,
+                        InventoryId = item.InventoryId,
+                        Quantity = item.Quantity,
+                        PurchasePrice = item.PurchasePrice,
+                        PurchaseDate = DateTime.Now
+                    };
+                    context.productBatches.Add(productBatch);
                 }
 
-                // Save the bill and inventory changes to the database
                 context.buyBill.Add(bill);
+
                 context.SaveChanges();
 
                 return RedirectToAction("Index", "Home");
             }
 
-            // If model state is invalid, reload dropdowns for the view
             model.Suppliers = context.suppliers.ToList();
             model.Products = context.products.ToList();
             model.Inventories = context.inventories.ToList();
@@ -234,6 +263,8 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
+        // GET: Create sales bill
+        // GET: Create sales bill
         [HttpGet]
         public IActionResult CreateSalesBill()
         {
@@ -241,14 +272,15 @@ namespace SmartMoon.MVC.Controllers
             {
                 clients = context.clients.ToList(),
                 MoneyDrawers = context.moneyDrawer.ToList(),
-                inventories = context.inventories.ToList(), 
-                products = context.products.ToList(),
+                inventories = context.inventories.ToList(),
+                products = context.products.Where(p => p.Quantity > 0).ToList(),
                 Items = new List<SalesBillItemViewModel>()
             };
 
             return View(model);
         }
 
+        // POST: Create sales bill and update inventory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateSalesBill(SalesBillViewModel model)
@@ -264,84 +296,111 @@ namespace SmartMoon.MVC.Controllers
                     RemainingBalance = model.RemainingBalance,
                     MoneyDrawer = model.MoneyDrawer,
                     Date = DateTime.Now,
-                    Items = model.Items.Select(i => new SalesBillItem
-                    {
-                        InventoryId = i.InventoryId,
-                        ProductId = i.ProductId,
-                        Quantity = i.Quantity,
-                        SalePrice = i.SalePrice,
-                        TotalPrice = i.TotalPrice
-                    }).ToList()
+                    Items = new List<SalesBillItem>()
                 };
-                var client = context.clients.FirstOrDefault(x => x.Id == model.ClientId);
-                if(client != null && model.RemainingBalance != 0)
-                {
-                    client.Balance -= model.RemainingBalance;
-                }
+
                 var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
-                moneyDrawer.CurrentBalance += model.TotalAmount;
-                context.moneyDrawer.Update(moneyDrawer);
+                if (moneyDrawer != null)
+                {
+                    moneyDrawer.CurrentBalance += model.CashPaid;
+                    context.moneyDrawer.Update(moneyDrawer);
+                }
+
                 foreach (var item in model.Items)
                 {
-                    // Update the total quantity in the Products table
-                    var product = context.products.FirstOrDefault(x => x.Id == item.ProductId);
-                    if (product != null)
-                    {
-                        product.Quantity -= item.Quantity; // Increase the total product quantity
-                         
-                        context.products.Update(product);
-                    }
-
-                    // Update the quantity in the InventoryProduct table
-                    var inventoryProduct = context.inventoryProducts
-                        .FirstOrDefault(ip => ip.ProductId == item.ProductId && ip.InventoryId == item.InventoryId);
-
-                    if (inventoryProduct != null)
-                    {
-                        // If the product already exists in this inventory, update the quantity
-                        inventoryProduct.Quantity -= item.Quantity;
-                        context.inventoryProducts.Update(inventoryProduct);
-                    }
                    
+                    var product = context.products.FirstOrDefault(p => p.Id == item.ProductId);
+                    if (product == null || product.Quantity < item.Quantity)
+                    {
+                        return BadRequest("Product not available or insufficient quantity.");
+                    }
+
+                    int remainingQuantity = item.Quantity;
+                    decimal itemTotalPrice = 0;
+
+                   
+                    var productBatches = context.productBatches
+                        .Where(pb => pb.InventoryId == item.InventoryId && pb.ProductId == item.ProductId && pb.Quantity > 0)
+                        .OrderBy(pb => pb.PurchaseDate)
+                        .ToList();
+
+                    foreach (var batch in productBatches)
+                    {
+                        if (remainingQuantity <= 0) break;
+
+                        int batchQuantityToDeduct = Math.Min(batch.Quantity, remainingQuantity);
+                        decimal batchCost = batchQuantityToDeduct * batch.PurchasePrice;
+
+                        batch.Quantity -= batchQuantityToDeduct;
+                        remainingQuantity -= batchQuantityToDeduct;
+                        itemTotalPrice += batchQuantityToDeduct * item.SalePrice;
+
+                        var inventoryProduct = context.inventoryProducts
+                            .FirstOrDefault(ip => ip.InventoryId == item.InventoryId && ip.ProductId == item.ProductId);
+
+                        if (inventoryProduct != null)
+                        {
+                            inventoryProduct.Quantity -= batchQuantityToDeduct;
+                            context.inventoryProducts.Update(inventoryProduct);
+                        }
+
+                        
+                        salesBill.Items.Add(new SalesBillItem
+                        {
+                            InventoryId = item.InventoryId,
+                            ProductId = item.ProductId,
+                            Quantity = batchQuantityToDeduct,
+                            SalePrice = item.SalePrice,
+                            TotalPrice = batchQuantityToDeduct * item.SalePrice
+                        });
+                    }
+
+                    if (remainingQuantity > 0)
+                    {
+                        return BadRequest("Insufficient batch quantity to fulfill the order.");
+                    }
+
+                    
+                    product.Quantity -= item.Quantity;
+                    context.products.Update(product);
                 }
 
+                // Save the sales bill and apply all inventory changes
                 context.salesBill.Add(salesBill);
                 context.SaveChanges();
 
-                return RedirectToAction("Index","Home");
+                return RedirectToAction("Index", "Home");
             }
 
-            // Reload customers and money drawers if validation fails
+            // Reload data if model state is invalid
             model.clients = context.clients.ToList();
             model.MoneyDrawers = context.moneyDrawer.ToList();
             model.inventories = context.inventories.ToList();
-               model.products = context.products.ToList();
+            model.products = context.products.ToList();
+
             return View(model);
         }
+
+
+        // GET: Check available stock
         [HttpGet]
         public IActionResult GetAvailableStock(int productId, int inventoryId)
         {
+            var availableQuantity = context.productBatches
+                .Where(pb => pb.ProductId == productId && pb.InventoryId == inventoryId)
+                .Sum(pb => pb.Quantity);
 
-            var availableQuantity = context.inventoryProducts
-                           .Where(ip => ip.ProductId == productId && ip.InventoryId == inventoryId)
-                           .Select(ip => ip.Quantity)
-                           .FirstOrDefault();
-
-
-            if(availableQuantity > 0) return Json(new { availableQuantity = availableQuantity });
-            
-            else return Json(new { availableQuantity = 0 });
+            return Json(new { availableQuantity = availableQuantity > 0 ? availableQuantity : 0 });
         }
 
+        // GET: Create purchase return bill
         [HttpGet]
         public IActionResult CreatePurchaseReturnBill()
         {
-            var inv = context.inventories.ToList();
-            var model = new PurchaseBillViewModel()
+            var model = new PurchaseBillViewModel
             {
                 Suppliers = context.suppliers.ToList(),
-
-                Inventories = inv,
+                Inventories = context.inventories.ToList(),
                 Products = context.products.ToList(),
                 MoneyDrawers = context.moneyDrawer.ToList(),
                 Items = new List<BillItemViewModel>()
@@ -349,19 +408,17 @@ namespace SmartMoon.MVC.Controllers
 
             return View(model);
         }
+
+        // POST: Create purchase return bill and update inventory
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult CreatePurchaseReturnBill(PurchaseBillViewModel model)
         {
             if (ModelState.IsValid)
             {
-                // Calculate total amount for the purchase bill
                 model.TotalAmount = model.Items.Sum(item => item.PurchasePrice * item.Quantity);
-
-                // Calculate remaining balance
                 model.RemainingBalance = model.TotalAmount - model.DiscountAmount - model.CashPaid;
 
-                // Create BuyBill entity
                 var bill = new PurchaseReturnBill
                 {
                     SupplierId = model.SupplierId,
@@ -382,47 +439,52 @@ namespace SmartMoon.MVC.Controllers
                         InventoryId = item.InventoryId
                     }).ToList()
                 };
+
                 var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
-                moneyDrawer.CurrentBalance += model.TotalAmount;
-                context.moneyDrawer.Update(moneyDrawer);
+                if (moneyDrawer != null)
+                {
+                    moneyDrawer.CurrentBalance += model.TotalAmount;
+                    context.moneyDrawer.Update(moneyDrawer);
+                }
+
                 foreach (var item in model.Items)
                 {
-                    // Update the total quantity in the Products table
-                    var product = context.products.FirstOrDefault(x => x.Id == item.ProductId);
-                    if (product != null)
+                    var quantityToReturn = item.Quantity;
+
+                    var batch = context.productBatches
+                        .FirstOrDefault(pb => pb.ProductId == item.ProductId &&
+                                              pb.InventoryId == item.InventoryId &&
+                                              pb.PurchasePrice == item.PurchasePrice);
+
+                    if (batch != null)
                     {
-                        product.Quantity -= item.Quantity; // Increase the total product quantity
-                         
-                        context.products.Update(product);
+                        batch.Quantity += quantityToReturn;
+                        context.productBatches.Update(batch);
                     }
 
-                    // Update the quantity in the InventoryProduct table
                     var inventoryProduct = context.inventoryProducts
                         .FirstOrDefault(ip => ip.ProductId == item.ProductId && ip.InventoryId == item.InventoryId);
 
                     if (inventoryProduct != null)
                     {
-                        // If the product already exists in this inventory, update the quantity
                         inventoryProduct.Quantity -= item.Quantity;
                         context.inventoryProducts.Update(inventoryProduct);
                     }
-                   
                 }
 
-                // Save the bill and inventory changes to the database
                 context.purchaseReturnBills.Add(bill);
                 context.SaveChanges();
 
                 return RedirectToAction("Index", "Home");
             }
 
-            // If model state is invalid, reload dropdowns for the view
             model.Suppliers = context.suppliers.ToList();
             model.Products = context.products.ToList();
             model.Inventories = context.inventories.ToList();
-
             return View(model);
         }
+
+        // GET: Create return sales bill
         [HttpGet]
         public IActionResult CreateReturnSalesBill()
         {
@@ -438,6 +500,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
+        // POST: Create return sales bill and update inventory
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateReturnSalesBill(SalesBillViewModel model)
@@ -462,31 +525,42 @@ namespace SmartMoon.MVC.Controllers
                         TotalPrice = i.TotalPrice
                     }).ToList()
                 };
+
                 var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
-                moneyDrawer.CurrentBalance -= model.TotalAmount;
-                context.moneyDrawer.Update(moneyDrawer);
+                if (moneyDrawer != null)
+                {
+                    moneyDrawer.CurrentBalance -= model.TotalAmount;
+                    context.moneyDrawer.Update(moneyDrawer);
+                }
+
                 foreach (var item in model.Items)
                 {
-                    // Update the total quantity in the Products table
-                    var product = context.products.FirstOrDefault(x => x.Id == item.ProductId);
-                    if (product != null)
-                    {
-                        product.Quantity += item.Quantity; // Increase the total product quantity
+                    var quantityToReturn = item.Quantity;
 
-                        context.products.Update(product);
+                    var batches = context.productBatches
+                        .Where(pb => pb.ProductId == item.ProductId && pb.InventoryId == item.InventoryId)
+                        .OrderByDescending(pb => pb.PurchaseDate)
+                        .ToList();
+
+                    foreach (var batch in batches)
+                    {
+                        if (quantityToReturn <= 0) break;
+
+                        var addBackQuantity = Math.Min(quantityToReturn, batch.Quantity);
+                        batch.Quantity += addBackQuantity;
+                        quantityToReturn -= addBackQuantity;
+
+                        context.productBatches.Update(batch);
                     }
 
-                    // Update the quantity in the InventoryProduct table
                     var inventoryProduct = context.inventoryProducts
                         .FirstOrDefault(ip => ip.ProductId == item.ProductId && ip.InventoryId == item.InventoryId);
 
                     if (inventoryProduct != null)
                     {
-                        // If the product already exists in this inventory, update the quantity
                         inventoryProduct.Quantity += item.Quantity;
                         context.inventoryProducts.Update(inventoryProduct);
                     }
-
                 }
 
                 context.salesReturnBills.Add(salesBill);
@@ -495,7 +569,6 @@ namespace SmartMoon.MVC.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Reload customers and money drawers if validation fails
             model.clients = context.clients.ToList();
             model.MoneyDrawers = context.moneyDrawer.ToList();
             model.inventories = context.inventories.ToList();
@@ -531,10 +604,14 @@ namespace SmartMoon.MVC.Controllers
             {
                 foreach (var Expense in model.Expenses)
                 {
-                    var expense = context.expense.FirstOrDefault(x => x.Item == Expense.Item);
-                    expense.Amount = Expense.Amount;
-                    expense.MoneyDrawerId = Expense.MoneyDrawerId;
-                    context.expense.Update(expense);
+                    var expense = new Expense
+                    {
+                        Item = Expense.Item,
+                        Amount = Expense.Amount,
+                        MoneyDrawerId = Expense.MoneyDrawerId,
+                        ExpenseDate = DateTime.Now,
+                    };
+                    context.expense.Add(expense);
                     var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Id == expense.MoneyDrawerId);
                     moneyDrawer.CurrentBalance -= expense.Amount;
                     context.moneyDrawer.Update(moneyDrawer);
@@ -595,15 +672,15 @@ namespace SmartMoon.MVC.Controllers
         [HttpGet]
         public IActionResult TransferBetweenInventories()
         {
-           
             var model = new TransferProductsViewModels
             {
                 inventories = context.inventories.ToList(),
-                products = context.products.Where(x=>x.Quantity>0).ToList()
+                products = context.products.Where(x => x.Quantity > 0).ToList()
             };
 
             return View(model);
         }
+
         [HttpPost]
         public async Task<IActionResult> SaveTransferBetweenInventories(TransferViewModel model)
         {
@@ -619,16 +696,51 @@ namespace SmartMoon.MVC.Controllers
                 var fromInventoryProduct = context.inventoryProducts
                     .FirstOrDefault(ip => ip.InventoryId == fromInventoryId && ip.ProductId == transfer.ProductId);
 
-                var toInventoryProduct = context.inventoryProducts
-                    .FirstOrDefault(ip => ip.InventoryId == toInventoryId && ip.ProductId == transfer.ProductId);
-
                 if (fromInventoryProduct == null || fromInventoryProduct.Quantity < transfer.Quantity)
                     return BadRequest("Insufficient quantity for transfer.");
 
-                // Deduct from source inventory
+                var toInventoryProduct = context.inventoryProducts
+                    .FirstOrDefault(ip => ip.InventoryId == toInventoryId && ip.ProductId == transfer.ProductId);
+
+                int quantityToTransfer = transfer.Quantity;
+                var productBatches = context.productBatches
+                    .Where(pb => pb.InventoryId == fromInventoryId && pb.ProductId == transfer.ProductId && pb.Quantity > 0)
+                    .OrderBy(pb => pb.PurchaseDate)
+                    .ToList();
+
+                foreach (var batch in productBatches)
+                {
+                    if (quantityToTransfer <= 0) break;
+
+                    int transferBatchQuantity = Math.Min(batch.Quantity, quantityToTransfer);
+                    batch.Quantity -= transferBatchQuantity;
+                    quantityToTransfer -= transferBatchQuantity;
+
+                    var targetBatch = context.productBatches
+                        .FirstOrDefault(pb => pb.InventoryId == toInventoryId && pb.ProductId == transfer.ProductId && pb.PurchasePrice == batch.PurchasePrice);
+
+                    if (targetBatch == null)
+                    {
+                        targetBatch = new ProductBatch
+                        {
+                            ProductId = transfer.ProductId,
+                            InventoryId = toInventoryId,
+                            Quantity = transferBatchQuantity,
+                            PurchasePrice = batch.PurchasePrice,
+                            PurchaseDate = DateTime.Now
+                        };
+                        context.productBatches.Add(targetBatch);
+                    }
+                    else
+                    {
+                        targetBatch.Quantity += transferBatchQuantity;
+                        context.productBatches.Update(targetBatch);
+                    }
+                }
+
+                // Update inventory quantities
                 fromInventoryProduct.Quantity -= transfer.Quantity;
 
-                // Add to target inventory
                 if (toInventoryProduct == null)
                 {
                     context.inventoryProducts.Add(new InventoryProduct
@@ -647,7 +759,7 @@ namespace SmartMoon.MVC.Controllers
             await context.SaveChangesAsync();
             return RedirectToAction("Index", "Home");
         }
-    
+
         [HttpGet]
         public IActionResult GetProducts(int fromInventoryId, string searchQuery)
         {
@@ -1180,7 +1292,7 @@ namespace SmartMoon.MVC.Controllers
         [HttpGet]
         public IActionResult ViewProductsShortcomings()
         {
-            var products = context.products.Where(x=>x.Quantity==0).ToList();
+            var products = context.products.Where(x => x.Quantity == 0).ToList();
             return View(products);
         }
         [HttpGet]
@@ -1207,14 +1319,17 @@ namespace SmartMoon.MVC.Controllers
 
             return View(lateInstallments);
         }
+        [HttpGet]
         public IActionResult FinancialPosition()
         {
-            var forClients = context.clients.Where(x=>x.Balance > 0).Sum(x=>x.Balance);
-            var onClients = context.clients.Where(x=>x.Balance < 0).Sum(x=>x.Balance);
-            var onSuppliers = context.suppliers.Where(x=>x.Balance < 0).Sum(x=>x.Balance);
-            var forSuppliers = context.suppliers.Where(x=>x.Balance > 0).Sum(x=>x.Balance);
+            var forClients = context.clients.Where(x => x.Balance > 0).Sum(x => x.Balance);
+            var onClients = context.clients.Where(x => x.Balance < 0).Sum(x => x.Balance);
+            var onSuppliers = context.suppliers.Where(x => x.Balance < 0).Sum(x => x.Balance);
+            var forSuppliers = context.suppliers.Where(x => x.Balance > 0).Sum(x => x.Balance);
             var drawersBalance = context.moneyDrawer.Sum(x => x.CurrentBalance);
-            var inventoriesBalance =  context.inventoryProducts.Sum(ip => ip.Quantity * ip.Product.Price);
+            var inventoriesBalance = context.productBatches
+                .Sum(pb => pb.Quantity * pb.PurchasePrice);
+
             var model = new FinancialPositionViewModel
             {
                 ForClients = forClients,
@@ -1223,13 +1338,559 @@ namespace SmartMoon.MVC.Controllers
                 ForSuppliers = forSuppliers,
                 DrawersActualBalance = drawersBalance,
                 InventoriesActualBalance = inventoriesBalance,
-                ActualTotalBalance = drawersBalance+inventoriesBalance,
+                ActualTotalBalance = drawersBalance + inventoriesBalance,
                 TotalForUs = Math.Abs(onClients) + Math.Abs(onSuppliers),
-                TotalOnUs = forClients+forSuppliers,
-                
+                TotalOnUs = forClients + forSuppliers,
             };
+
             model.FinalPosition = (model.ActualTotalBalance + model.TotalForUs) - model.TotalOnUs;
             return View(model);
         }
+        [HttpGet]
+        public IActionResult ItemMovement()
+        {
+            var drawres = context.moneyDrawer.ToList();
+            return View(drawres);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetFilteredReport(
+     string productName,
+    
+     string moneyDrawer,
+     DateTime? startDate,
+     DateTime? endDate,
+     string operationType)
+        {
+            IQueryable<dynamic> query;
+
+            // Based on the selected operation type, query the relevant table
+            switch (operationType)
+            {
+                case "BuyBill": // BuyBill
+                    query = context.buyBill
+                        .Include(bb => bb.Supplier)
+                        .Where(bb => (string.IsNullOrEmpty(productName) || bb.BillItems.Any(bi => bi.Product.Name.Contains(productName))) &&
+                                     (string.IsNullOrEmpty(moneyDrawer) || bb.MoneyDrawer == moneyDrawer) &&
+                                     (!startDate.HasValue || bb.Date >= startDate.Value) &&
+                                     (!endDate.HasValue || bb.Date <= endDate.Value))
+                        .Select(bb => new
+                        {
+                            bb.Date,
+                            
+                            bb.MoneyDrawer,
+                            ProductName = bb.BillItems.Select(bi => bi.Product.Name).FirstOrDefault(),
+                            Price = bb.BillItems.Select(bi => bi.Product.Price).FirstOrDefault(),
+                            Quantity = bb.BillItems.Select(i => i.Quantity),
+                            Name = bb.Supplier.Name,
+                            ItemCount = bb.BillItems.Count
+                        });
+                    break;
+
+                case "SalesBill": // SalesBill
+                    query = context.salesBill
+                        .Include(sb => sb.client)
+                        .Where(sb => (string.IsNullOrEmpty(productName) || sb.Items.Any(i => i.Product.Name.Contains(productName))) &&
+                                     
+                                     (string.IsNullOrEmpty(moneyDrawer) || sb.MoneyDrawer == moneyDrawer) &&
+                                     (!startDate.HasValue || sb.Date >= startDate.Value) &&
+                                     (!endDate.HasValue || sb.Date <= endDate.Value))
+                        .Select(sb => new
+                        {
+                            sb.Date,
+                           
+                            sb.MoneyDrawer,
+
+                            ProductName = sb.Items.Select(i => i.Product.Name).FirstOrDefault(),
+                            Price = sb.Items.Select(i => i.Product.Price).FirstOrDefault(),
+                            Quantity = sb.Items.Select(i=>i.Quantity),
+                            Name = sb.client.Name,
+                            ItemCount = sb.Items.Count
+                        });
+                    break;
+
+                case "SalesReturnBill": // SalesReturnBill
+                    query = context.salesReturnBills
+                        .Include(srb => srb.client)
+                        .Where(srb => (string.IsNullOrEmpty(productName) || srb.Items.Any(i => i.Product.Name.Contains(productName))) &&
+                                     
+                                     (string.IsNullOrEmpty(moneyDrawer) || srb.MoneyDrawer == moneyDrawer) &&
+                                     (!startDate.HasValue || srb.Date >= startDate.Value) &&
+                                     (!endDate.HasValue || srb.Date <= endDate.Value))
+                        .Select(srb => new
+                        {
+                            srb.Date,
+                            
+                            srb.MoneyDrawer,
+                            ProductName = srb.Items.Select(i => i.Product.Name).FirstOrDefault(),
+                            Price = srb.Items.Select(i => i.Product.Price).FirstOrDefault(),
+                            Quantity = srb.Items.Select(i => i.Quantity),
+                            Name = srb.client.Name,
+                            ItemCount = srb.Items.Count
+                        });
+                    break;
+
+                case "PurchaseReturnBill": 
+                    query = context.purchaseReturnBills
+                        .Include(pr => pr.Supplier)
+                        .Where(pr => (string.IsNullOrEmpty(productName) || pr.BillItems.Any(bi => bi.Product.Name.Contains(productName))) &&
+                                     (string.IsNullOrEmpty(moneyDrawer) || pr.MoneyDrawer == moneyDrawer) &&
+                                     (!startDate.HasValue || pr.Date >= startDate.Value) &&
+                                     (!endDate.HasValue || pr.Date <= endDate.Value))
+                        .Select(pr => new
+                        {
+                            pr.Date,
+                            
+                            pr.MoneyDrawer,
+                            ProductName = pr.BillItems.Select(bi => bi.Product.Name).FirstOrDefault(),
+                            Price = pr.BillItems.Select(bi => bi.Product.Price).FirstOrDefault(),
+                            Quantity = pr.BillItems.Select(i => i.Quantity),
+                            Name = pr.Supplier.Name,
+                            ItemCount = pr.BillItems.Count
+                        });
+                    break;
+
+                default:
+                    // If 'all' is selected or an invalid type, return an empty result or a generic query.
+                    query = Enumerable.Empty<object>().AsQueryable();
+                    break;
+            }
+
+            // Execute the query asynchronously and return the result as a JSON response
+            var result = await query.ToListAsync();
+
+            // Return the filtered data in JSON format
+            return Json(result);
+        }
+
+        public IActionResult ViewDailyExpenses()
+        {
+            var items = context.expense.Select(x => x.Item).Distinct();
+            return View(items);
+        }
+
+        
+        [HttpGet]
+        public IActionResult GetFilteredExpenses(DateTime selectedDate, string category)
+        {
+            // Calculate the start and end of the day for the selected date
+            DateTime startOfDay = selectedDate.Date;
+            DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+
+            // Filter expenses based on the date and category
+            var expenses = context.expense
+                .Where(e => e.ExpenseDate >= startOfDay && e.ExpenseDate <= endOfDay
+                            && (category == "all" || e.Item == category))
+                .Select(e => new
+                {
+                    e.ExpenseDate,
+                    e.Item,
+                    e.Amount,
+                    MoneyDrawerName = e.MoneyDrawer.Name ?? "Unknown"
+                })
+                .ToList();
+
+            return Json(expenses);
+        }
+
+        [HttpGet]
+        public IActionResult ViewDailySales()
+        {
+            var drawers = context.moneyDrawer.Select(x => x.Name).ToList();
+            return View(drawers);
+        }
+        
+        [HttpGet]
+        public IActionResult GetDailySalesReport(DateTime selectedDate, string drawer)
+        {
+            // Calculate the start and end of the day for the selected date
+            DateTime startOfDay = selectedDate.Date;
+            DateTime endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+
+            // Query to get sales bills on the specified date and drawer
+            var salesData = context.salesBill
+                .Where(s => s.Date >= startOfDay && s.Date <= endOfDay
+                            && (drawer == "all" || s.MoneyDrawer == drawer))
+                .Select(s => new
+                {
+                    s.Date,
+                    Items = s.Items.Select(item => new
+                    {
+                        item.Product.Name,
+                        item.Quantity,
+                        SalePrice = item.SalePrice,
+                        TotalPrice = item.TotalPrice,
+                        PurchasePrice = item.Product.ProductBatches
+                            .Where(batch => batch.ProductId == item.ProductId)
+                            .OrderBy(batch => batch.PurchaseDate) 
+                            .Select(batch => batch.PurchasePrice)
+                            .FirstOrDefault(),
+                        Profit = item.TotalPrice - (item.Quantity * item.Product.ProductBatches
+                            .Where(batch => batch.ProductId == item.ProductId)
+                            .OrderBy(batch => batch.PurchaseDate)
+                            .Select(batch => batch.PurchasePrice)
+                            .FirstOrDefault())
+                    }),
+                    User = s.client.Name ?? "غير معروف" 
+                })
+                .ToList();
+
+            return Json(salesData);
+        }
+
+        [HttpGet]
+        public IActionResult ViewDrawerOperations()
+        {
+            var drawers = context.moneyDrawer.Select(x => x.Name).ToList();
+            return View(drawers);
+        }
+        [HttpGet]
+        public IActionResult Filtered(DateTime? startDate, DateTime? endDate, string moneyDrawer)
+        {
+            startDate ??= DateTime.Now.AddMonths(-1);  
+            endDate ??= DateTime.Now;  
+
+            
+            var buyBills = context.buyBill
+                .Where(b => b.Date >= startDate && b.Date <= endDate && b.MoneyDrawer == moneyDrawer)
+                .Select(b => new
+                {
+                    Time = b.Date.ToString("hh:mm tt"),
+                    Date = b.Date.ToString("yyyy-MM-dd"),
+                    Revenue = 0,
+                    Expense = b.CashPaid,
+                    Description = $"فاتورة شراء {b.Id} المورد: {b.Supplier.Name}",
+                    User = "المستخدم 1"
+                });
+
+            var salesBills = context.salesBill
+                .Where(s => s.Date >= startDate && s.Date <= endDate && s.MoneyDrawer == moneyDrawer)
+                .Select(s => new
+                {
+                    Time = s.Date.ToString("hh:mm tt"),
+                    Date = s.Date.ToString("yyyy-MM-dd"),
+                    Revenue = s.CashPaid,
+                    Expense = 0,
+                    Description = $"فاتورة مبيعات {s.Id} العميل: {s.client.Name}",
+                    User = "المستخدم 2"
+                });
+
+            var salesReturnBills = context.salesReturnBills
+                .Where(s => s.Date >= startDate && s.Date <= endDate && s.MoneyDrawer == moneyDrawer)
+                .Select(s => new
+                {
+                    Time = s.Date.ToString("hh:mm tt"),
+                    Date = s.Date.ToString("yyyy-MM-dd"),
+                    Revenue = 0,
+                    Expense = s.CashPaid,
+                    Description = $"مرتجع مبيعات {s.Id} العميل: {s.client.Name}",
+                    User = "المستخدم 3"
+                });
+
+            var purchaseReturnBills = context.purchaseReturnBills
+                .Where(p => p.Date >= startDate && p.Date <= endDate && p.MoneyDrawer == moneyDrawer)
+                .Select(p => new
+                {
+                    Time = p.Date.ToString("hh:mm tt"),
+                    Date = p.Date.ToString("yyyy-MM-dd"),
+                    Revenue = p.CashPaid,
+                    Expense = 0,
+                    Description = $"مرتجع شراء {p.Id} المورد: {p.Supplier.Name}",
+                    User = "المستخدم 4"
+                });
+
+            // Fetch the operations data from different sources
+            var buyOperations =  buyBills.ToList();
+            var salesOperations =  salesBills.ToList();
+            var salesReturnOperations =  salesReturnBills.ToList();
+            var purchaseReturnOperations =  purchaseReturnBills.ToList();
+
+            // Concatenate and project the data into OperationType objects
+            var allOperations = buyOperations
+                .Select(b => new OperationType
+                {
+                    Date = b.Date,
+                    Time = b.Time,
+                    Revenue = b.Revenue,
+                    Expense = b.Expense,
+                    Description = b.Description,
+                    User = b.User
+                })
+                .Concat(salesOperations.Select(s => new OperationType
+                {
+                    Date = s.Date,
+                    Time = s.Time,
+                    Revenue = s.Revenue,
+                    Expense = s.Expense,
+                    Description = s.Description,
+                    User = s.User
+                }))
+                .Concat(salesReturnOperations.Select(sr => new OperationType
+                {
+                    Date = sr.Date,
+                    Time = sr.Time,
+                    Revenue = sr.Revenue,
+                    Expense = sr.Expense,
+                    Description = sr.Description,
+                    User = sr.User
+                }))
+                .Concat(purchaseReturnOperations.Select(pr => new OperationType
+                {
+                    Date = pr.Date,
+                    Time = pr.Time,
+                    Revenue = pr.Revenue,
+                    Expense = pr.Expense,
+                    Description = pr.Description,
+                    User = pr.User
+                }))
+                .OrderBy(o => o.Date)
+                .ThenBy(o => o.Time)
+                .ToList();
+
+
+
+
+            return Json(allOperations);
+        }
+
+        public IActionResult ViewNetProfit()
+        {
+            var drawers = context.moneyDrawer.Select(c => c.Name).ToList();
+            return View(drawers);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetNetProfitReport(DateTime startDate, DateTime endDate, string moneyDrawer)
+        {
+            
+            var salesBillsQuery = context.salesBill
+                .Where(bill => bill.Date >= startDate && bill.Date <= endDate);
+
+            var salesReturnBillsQuery = context.salesReturnBills
+                .Where(bill => bill.Date >= startDate && bill.Date <= endDate);
+
+            var buyBillsQuery = context.buyBill
+                .Where(bill => bill.Date >= startDate && bill.Date <= endDate);
+
+            var purchaseReturnBillsQuery = context.purchaseReturnBills
+                .Where(bill => bill.Date >= startDate && bill.Date <= endDate);
+
+            var expensesQuery = context.expense
+                .Where(exp => exp.ExpenseDate >= startDate && exp.ExpenseDate <= endDate);
+
+            if (!string.IsNullOrEmpty(moneyDrawer) && moneyDrawer != "all")
+            {
+                salesBillsQuery = salesBillsQuery.Where(bill => bill.MoneyDrawer == moneyDrawer);
+                salesReturnBillsQuery = salesReturnBillsQuery.Where(bill => bill.MoneyDrawer == moneyDrawer);
+                buyBillsQuery = buyBillsQuery.Where(bill => bill.MoneyDrawer == moneyDrawer);
+                purchaseReturnBillsQuery = purchaseReturnBillsQuery.Where(bill => bill.MoneyDrawer == moneyDrawer);
+                expensesQuery = expensesQuery.Where(exp => exp.MoneyDrawer.Name == moneyDrawer);
+            }
+
+            
+            var totalRevenue = await salesBillsQuery.SumAsync(bill => bill.TotalAmount - bill.DiscountAmount)
+                              - await salesReturnBillsQuery.SumAsync(bill => bill.TotalAmount - bill.DiscountAmount);
+
+            var totalPurchases = await buyBillsQuery.SumAsync(bill => bill.TotalAmount - bill.DiscountAmount)
+                               - await purchaseReturnBillsQuery.SumAsync(bill => bill.TotalAmount - bill.DiscountAmount);
+
+            var totalExpenses = await expensesQuery.SumAsync(exp => exp.Amount);
+
+            var netProfit = totalRevenue - totalPurchases - totalExpenses;
+
+            
+            return Json(new
+            {
+                TotalRevenue = totalRevenue,
+                TotalPurchases = totalPurchases,
+                TotalExpenses = totalExpenses,
+                NetProfit = netProfit
+            });
+        }
+
+        [HttpGet]
+        public IActionResult ViewEmployees()
+        {
+            var model = new EmployeeViewModel
+            {
+
+                Employees = context.employees.ToList(),
+                TotalSalaries = context.employees.Sum(x => x.Salary)
+
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddEmployee(EmployeeViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var isfound = context.employees.FirstOrDefault(x => x.Name == model.Name);
+                if (isfound == null)
+                {
+                    var emp = new Employee
+                    {
+                        Name = model.Name,
+                        PhoneNumber = model.PhoneNumber,
+                        Job = model.Job,
+                        Salary = model.Salary,
+                        SalesRatio = model.SalesRatio
+                    };
+                    context.employees.Add(emp);
+                }
+                else
+                {
+                    isfound.Name=model.Name;
+                    isfound.PhoneNumber=model.PhoneNumber;
+                    isfound.Salary = model.Salary;
+                    isfound.Job = model.Job;
+                    isfound.SalesRatio = model.SalesRatio;
+                }
+                context.SaveChanges();
+                
+            }
+            return RedirectToAction("ViewEmployees", "Admin");
+        }
+        public IActionResult DeleteEmployee(int id)
+        {
+            var emp = context.employees.FirstOrDefault(x=>x.Id== id);
+            if(emp == null)
+            {
+                return NotFound("هذا الموظف غير موجود");
+            }
+            context.employees.Remove(emp);
+            context.SaveChanges();
+            return RedirectToAction("ViewEmployees");
+        }
+
+        public IActionResult ViewAdvancesIncentivesAndDiscounts()
+        {
+            var model = new NetEmpSalaryViewModel
+            {
+                empSalaries = context.netEmpSalaries.Include(c=>c.Employee).ToList(),
+                Darwers = context.moneyDrawer.Select(c => c.Name).ToList()
+        };
+            return View(model);
+        }
+        [HttpGet]
+        public JsonResult EmployeeSearch(string searchTerm)
+        {
+            
+            var employees = context.employees
+                .Where(e => e.Name.Contains(searchTerm))
+                .Select(e => new
+                {
+                    e.Id,
+                    e.Name
+                })
+                .ToList();
+
+            return Json(employees);
+        }
+
+        [HttpPost]
+        public IActionResult SaveItems(NetEmpSalaryViewModel model)
+        {
+            if(ModelState.IsValid)
+            {
+                var item = new NetEmpSalary
+                {
+                    EmployeeId = model.EmployeeId,
+                    Date = model.Date,
+                    Item = model.Item,
+                    Amount = model.Amount,
+                                  };
+                if(model.Item == "سلفة")
+                {
+                    var drawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
+                    drawer.CurrentBalance -= model.Amount;
+                    item.MoneyDrawer = model.MoneyDrawer;
+                }
+                context.netEmpSalaries.Add(item);
+                context.SaveChanges();
+            }
+            return RedirectToAction("ViewAdvancesIncentivesAndDiscounts");
+        }
+        public IActionResult DeleteItem(int id)
+        {
+            var item = context.netEmpSalaries.FirstOrDefault(x => x.Id == id);
+            if (item == null) return NotFound();
+            context.netEmpSalaries.Remove(item);
+            context.SaveChanges();
+            return RedirectToAction("ViewAdvancesIncentivesAndDiscounts");
+        }
+        public IActionResult PayingSalaries()
+        {
+            // Get all employees
+            var employees = context.employees.ToList();
+
+            // Retrieve employee salary data
+            var employeeSalaries = employees.Select(employee =>
+            {
+                var netEmpSalaries = context.netEmpSalaries
+                    .Where(n => n.EmployeeId == employee.Id && n.Date.Month == DateTime.Now.Month && n.Date.Year == DateTime.Now.Year)
+                    .ToList();
+
+                var incentive = netEmpSalaries
+                    .Where(s => s.Item == "حافز")
+                    .Sum(s => s.Amount);
+                var deduction = netEmpSalaries
+                    .Where(s => s.Item == "خصم")
+                    .Sum(s => s.Amount);
+                var advance = netEmpSalaries
+                    .Where(s => s.Item == "سلفة")
+                    .Sum(s => s.Amount);
+
+                var netSalary = employee.Salary + incentive - deduction - advance;
+
+                return new EmployeeSalaryViewModel
+                {
+                    EmployeeId = employee.Id,
+                    Name = employee.Name,
+                    Job = employee.Job,
+                    BaseSalary = employee.Salary,
+                    Incentive = incentive,
+                    Deduction = deduction,
+                    Advance = advance,
+                    NetSalary = netSalary
+                };
+            }).ToList();
+
+           
+            var moneyDrawerNames = context.moneyDrawer.Select(md => md.Name).ToList();
+
+            
+            var viewModel = new PayingSalariesViewModel
+            {
+                Employees = employeeSalaries,
+                MoneyDrawers = moneyDrawerNames
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public IActionResult SaveTotalSalary(string SelectedMoneyDrawer, decimal TotalNetSalary)
+        {
+            
+            var salaryRecord = new TotalSalaryRecord
+            {
+                MoneyDrawer = SelectedMoneyDrawer,
+                TotalNetSalary = TotalNetSalary,
+                Date = DateTime.Now
+            };
+            var drawer = context.moneyDrawer.FirstOrDefault(x => x.Name == SelectedMoneyDrawer);
+            if(drawer.CurrentBalance >= TotalNetSalary)
+            {
+                drawer.CurrentBalance -= TotalNetSalary;
+                return BadRequest("رصيد الخزنة غير كافي للمرتبات");
+            }
+            context.totalSalaryRecords.Add(salaryRecord);
+            context.SaveChanges();
+
+            TempData["SuccessMessage"] = "تم حفظ إجمالي المرتب بنجاح";
+            return RedirectToAction("PayingSalaries");
+        }
+
     }
 }

@@ -1,0 +1,90 @@
+﻿@model AddUserViewModel
+
+@{
+    ViewData["Title"] = "AddUser";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاعدادات.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   
+</head>
+<body>
+
+    <section class="add-user-section">
+        <!-- Title -->
+        <div class="separator">
+            <h2>إضافة مستخدم جديد</h2>
+        </div>
+
+        <div class="add">
+            <!-- Form start -->
+            <form asp-action="AddUser" asp-controller="Account" method="post">
+
+                <!-- Username -->
+                <div class="row">
+                    <div class="column">
+                        <label asp-for="UserName">اسم المستخدم</label>
+                        <input asp-for="UserName" placeholder="أدخل اسم المستخدم" class="form-control" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Password and Confirm Password -->
+                <div class="row">
+                    <div class="column">
+                        <label asp-for="Password">كلمة المرور</label>
+                        <input asp-for="Password" placeholder="أدخل كلمة المرور" class="form-control" type="password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="column">
+                        <label for="ConfirmPassword">إعادة كلمة المرور</label>
+                        <input id="ConfirmPassword" name="ConfirmPassword" placeholder="أعد إدخال كلمة المرور" class="form-control" type="password" />
+                    </div>
+                </div>
+
+
+                <!-- User Role -->
+                <div class="column">
+                    <label asp-for="Role">دور المستخدم</label>
+                    <select asp-for="Role" class="form-control">
+                        <option value="مدير">مدير</option>
+                        <option value="مستخدم عادي">مستخدم عادي</option>
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger"></span>
+                </div>
+
+                <!-- Permissions -->
+                <div class="permissions">
+                    <h3>الصلاحيات</h3>
+                    <div class="checkbox-group">
+                        @foreach (var permission in Model.AllPermissions)
+                        {
+                            <div class="permission-item">
+                                <input type="checkbox" name="Permissions" value="@permission" id="@permission">
+                                <label for="@permission">@permission</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="buttons">
+                    <button type="submit" class="save-user-btn">حفظ المستخدم</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+</body>
+</html>

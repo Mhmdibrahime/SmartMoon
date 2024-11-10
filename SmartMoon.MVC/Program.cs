@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SmartMoon.MVC.Models.CustomAuthorization;
 using SmartMoon.MVC.Models.Data;
 using SmartMoon.MVC.Models.Entities;
 
@@ -24,6 +26,7 @@ namespace SmartMoon.MVC
                 options.Password.RequireDigit = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
+                options.User.AllowedUserNameCharacters = null;
             })
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<AppDbContext>();
@@ -37,6 +40,9 @@ namespace SmartMoon.MVC
                                .AllowAnyHeader();
                     });
             });
+            builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+            builder.Services.AddHttpContextAccessor(); // Register IHttpContextAccessor for dependency injection
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -57,7 +63,7 @@ namespace SmartMoon.MVC
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Account}/{action=Login}/{id?}");
 
             app.Run();
         }

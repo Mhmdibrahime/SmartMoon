@@ -158,14 +158,14 @@
                 const productId = $("#ProductSelection").val();
                 const inventoryId = $("#InventorySelection").val();
 
-                // Check if both product and inventory are selected
+
                 if (productId && inventoryId) {
                     $.ajax({
-                        url: '/Admin/GetAvailableStock', // Replace with your actual endpoint
+                        url: '/Admin/GetAvailableStock', 
                         type: 'GET',
                         data: { productId: productId, inventoryId: inventoryId },
                         success: function (data) {
-                            // Update the available quantity text with the returned data
+                            
                             $("#available-quantity-text").text(data.availableQuantity);
                         },
                         error: function () {
@@ -173,10 +173,11 @@
                         }
                     });
                 } else {
-                    // Clear the available quantity if either product or inventory is not selected
+                    
                     $("#available-quantity-text").text(0);
                 }
             }
+            
 
             // Trigger the update when product or inventory selection changes
             $("#ProductSelection").change(updateAvailableQuantity);
