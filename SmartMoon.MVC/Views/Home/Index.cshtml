@@ -84,11 +84,13 @@
         <div class="unique-cards-section">
             @foreach (var drawer in Model.moneyDrawers)
             {
+                <a asp-action="ViewDrawerOperations" asp-controller="Admin">
                 <div class="card uniqe">
-                    <i class='bx bx-dollar-circle icon'></i>
+                   <i class='bx bx-dollar-circle icon'></i>
                     <div class="card-title">@drawer.Name</div>
                     <div class="card-value">@drawer.CurrentBalance جنيه</div>
                 </div>
+                </a>
             }
         </div>
     </div>

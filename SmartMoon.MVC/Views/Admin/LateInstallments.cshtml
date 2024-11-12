@@ -65,10 +65,12 @@
                     <tr>
                         <td>@client.Name</td>
                         <td>@client.PhoneNumber</td>
-                        if(@client.Balance > 0){
-                        <td>@client.Balance له</td>}
+                        @if(@client.Balance > 0){
+                        <td>@client.Balance له</td>
+                        }
                         else {
-                        <td>@Math.Abs(client.Balance) عليه </td>}
+                        <td>@Math.Abs(client.Balance) عليه </td>
+                        }
                         
                         <td>@client.DaysLate</td>
                         <td><a asp-action="AccountStatement" asp-controller="Admin" asp-route-clientId="@client.Id"><i class='bx bx-show-alt show-btn'></i></a></td>

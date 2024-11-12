@@ -163,6 +163,16 @@
                 }
             });
         });
+        $(document).on('click', '.suggestion', function () {
+            var clientId = $(this).data('id');
+            var clientName = $(this).text();
+
+            $('#client').val(clientName);
+            $('#client-id').val(clientId);
+            $('#client-suggestions').empty();
+
+
+        });
 
         // Set price on product selection
         $('#product-suggestions').on('click', '.suggestion', function () {

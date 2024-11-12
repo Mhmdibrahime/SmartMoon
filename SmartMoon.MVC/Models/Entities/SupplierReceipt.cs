@@ -7,6 +7,8 @@
         public decimal AmountPaid { get; set; }
         public DateTime Date { get; set; } = DateTime.Now;
         public string? Type { get; set; }
+        public string? MoneyDrawer { get; set; }
+
         public virtual Supplier? Supplier { get; set; }
     }
 
