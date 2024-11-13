@@ -93,7 +93,18 @@
                     </div>
                 </div>
             </div>
-            
+            <div class="row">
+                <div class="column">
+                    <label for="EmployeeId">اختيار الموظف</label>
+                    <select asp-for="EmployeeId" class="form-control">
+                        <option value="">اختر الموظف</option>
+                        @foreach (var employee in Model.Employees)
+                        {
+                            <option value="@employee.Id">@employee.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
             <!-- Product Details -->
             <div class="row">
                 @* <div class="column">

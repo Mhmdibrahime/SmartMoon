@@ -6,15 +6,18 @@ namespace SmartMoon.MVC.Models.ViewModels
     public class ProductsViewModel
     {
         [ValidateNever]
-        public string? ProductName { get; set; }
+        public string ProductName { get; set; }
         [ValidateNever]
-        public decimal? Price { get; set; }
+        public decimal Price { get; set; }
         [ValidateNever]
-        public int? Quantity { get; set; }
+        public string SupplierName { get; set; }
         [ValidateNever]
-        public List<string>? SuppliersName { get; set; }
+        public string InventoryName { get; set; } 
+        [ValidateNever]
+        public int Quantity { get; set; }
 
-       
+
+
 
     }
 }

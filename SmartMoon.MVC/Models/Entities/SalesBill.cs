@@ -3,7 +3,6 @@
     public class SalesBill
     {
         public int Id { get; set; }
-       
         public int ClientId { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal DiscountAmount { get; set; }
@@ -12,8 +11,12 @@
         public string MoneyDrawer { get; set; }
         public DateTime Date { get; set; }
 
-        // Navigation property for related entities
-        public Client client { get; set; }
+        public string? PaymentMethod { get; set; }
+        public int? EmployeeId { get; set; }  
+
+        public Client Client { get; set; }
+        public Employee Employee { get; set; }  
         public ICollection<SalesBillItem> Items { get; set; }
     }
+
 }

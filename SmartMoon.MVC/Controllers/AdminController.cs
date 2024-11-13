@@ -88,33 +88,42 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        // View products and their suppliers
+
         public IActionResult ViewProducts()
         {
-            var productsWithSuppliers = context.products
-                .Where(x=>x.Quantity > 0)
-                .Include(x => x.productSuppliers)
-                .ThenInclude(x => x.Supplier)
-                .ToList();
 
-            var products = productsWithSuppliers.Select(p => new ProductsViewModel
+            var productInventories = context.products
+        .Include(p => p.ProductBatches)
+            .ThenInclude(pb => pb.Inventory)
+        .Include(p => p.productSuppliers)
+            .ThenInclude(ps => ps.Supplier)
+        .Where(p => p.Quantity > 0) 
+        .SelectMany(p => p.ProductBatches
+            .GroupBy(pb => pb.Inventory) // Group by inventory for each product
+            .Where(g => g.Sum(pb => pb.Quantity) > 0) // Only include groups with a non-zero quantity sum
+            .Select(g => new ProductsViewModel
             {
                 ProductName = p.Name,
                 Price = p.Price,
-                Quantity = p.Quantity,
-                SuppliersName = p.productSuppliers.Select(ps => ps.Supplier.Name).ToList()
-            }).ToList();
+                SupplierName = p.productSuppliers.Select(ps => ps.Supplier.Name).FirstOrDefault(), // Assuming one supplier per product
+                InventoryName = g.Key.Name, // Name of the inventory (group key)
+                Quantity = g.Sum(pb => pb.Quantity) // Sum of quantities for all batches in this inventory
+            }))
+        .ToList();
 
             var model = new ViewProductsWithSuppliersViewModel
             {
-                Products = products,
-                Suppliers = context.suppliers.ToList()
+                Products = productInventories,
+                Suppliers = context.suppliers.ToList(),
+                inventories = context.inventories.ToList()
             };
 
             return View(model);
         }
 
-        // Add a new product
+
+
+
         public IActionResult AddProduct(ViewProductsWithSuppliersViewModel model)
         {
             if (ModelState.IsValid)
@@ -292,13 +301,14 @@ namespace SmartMoon.MVC.Controllers
                 MoneyDrawers = context.moneyDrawer.ToList(),
                 inventories = context.inventories.ToList(),
                 products = context.products.Where(p => p.Quantity > 0).ToList(),
+                Employees = context.employees.ToList(),
                 Items = new List<SalesBillItemViewModel>()
             };
 
             return View(model);
         }
 
-        // POST: Create sales bill and update inventory
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateSalesBill(SalesBillViewModel model)
@@ -307,6 +317,7 @@ namespace SmartMoon.MVC.Controllers
             {
                 var salesBill = new SalesBill
                 {
+                    
                     ClientId = model.ClientId,
                     TotalAmount = model.TotalAmount,
                     DiscountAmount = model.DiscountAmount,
@@ -314,16 +325,20 @@ namespace SmartMoon.MVC.Controllers
                     RemainingBalance = model.RemainingBalance,
                     MoneyDrawer = model.MoneyDrawer,
                     Date = DateTime.Now,
+                    EmployeeId = model.EmployeeId,  
+                    PaymentMethod = model.PaymentMethod,  
                     Items = new List<SalesBillItem>()
                 };
-                 if(model.RemainingBalance > 0)
+
+                if (model.RemainingBalance > 0)
                 {
                     var client = context.clients.FirstOrDefault(x => x.Id == model.ClientId);
-                    if(client != null)
+                    if (client != null)
                     {
                         client.Balance -= model.RemainingBalance;
                     }
                 }
+
                 var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
                 if (moneyDrawer != null)
                 {
@@ -333,17 +348,15 @@ namespace SmartMoon.MVC.Controllers
 
                 foreach (var item in model.Items)
                 {
-                   
                     var product = context.products.FirstOrDefault(p => p.Id == item.ProductId);
                     if (product == null || product.Quantity < item.Quantity)
                     {
-                        return BadRequest("Product not available or insufficient quantity.");
+                        return BadRequest("الكمية الموجودة غير كافية");
                     }
 
                     int remainingQuantity = item.Quantity;
                     decimal itemTotalPrice = 0;
 
-                   
                     var productBatches = context.productBatches
                         .Where(pb => pb.InventoryId == item.InventoryId && pb.ProductId == item.ProductId && pb.Quantity > 0)
                         .OrderBy(pb => pb.PurchaseDate)
@@ -369,7 +382,6 @@ namespace SmartMoon.MVC.Controllers
                             context.inventoryProducts.Update(inventoryProduct);
                         }
 
-                        
                         salesBill.Items.Add(new SalesBillItem
                         {
                             InventoryId = item.InventoryId,
@@ -385,29 +397,29 @@ namespace SmartMoon.MVC.Controllers
                         return BadRequest("Insufficient batch quantity to fulfill the order.");
                     }
 
-                    
                     product.Quantity -= item.Quantity;
                     context.products.Update(product);
                 }
 
-                // Save the sales bill and apply all inventory changes
                 context.salesBill.Add(salesBill);
                 context.SaveChanges();
 
                 return RedirectToAction("Index", "Home");
             }
 
-            // Reload data if model state is invalid
+            
             model.clients = context.clients.ToList();
             model.MoneyDrawers = context.moneyDrawer.ToList();
             model.inventories = context.inventories.ToList();
             model.products = context.products.ToList();
+            model.Employees = context.employees.ToList(); // Add employees list for dropdown
 
             return View(model);
         }
 
 
-        // GET: Check available stock
+
+
         [HttpGet]
         public IActionResult GetAvailableStock(int productId, int inventoryId)
         {
@@ -563,6 +575,7 @@ namespace SmartMoon.MVC.Controllers
                     DiscountAmount = model.DiscountAmount,
                     CashPaid = model.CashPaid,
                     RemainingBalance = model.RemainingBalance,
+                    PaymentMethod = model.PaymentMethod,
                     MoneyDrawer = model.MoneyDrawer,
                     Date = DateTime.Now,
                     Items = model.Items.Select(i => new SalesReturnBillItem
@@ -925,7 +938,7 @@ namespace SmartMoon.MVC.Controllers
                 context.clientReceipts.Add(receipt);
                 context.SaveChanges();
 
-                TempData["Message"] = "!تم حفظ الايصال بنجاح";
+               
                 return RedirectToAction("Index", "Home");
             }
             model.moneyDrawers = context.moneyDrawer.ToList();
@@ -974,7 +987,7 @@ namespace SmartMoon.MVC.Controllers
                 context.clientReceipts.Add(receipt);
                 context.SaveChanges();
 
-                TempData["Message"] = "!تم حفظ الايصال بنجاح";
+                
                 return RedirectToAction("Index", "Home");
             }
             model.moneyDrawers = context.moneyDrawer.ToList();
@@ -1021,9 +1034,9 @@ namespace SmartMoon.MVC.Controllers
                         Quantity = item.Quantity,
                         SalePrice = item.SalePrice,
                         TotalPrice = item.TotalPrice,
-                        PaymentMethod = "نقدى", 
+                        PaymentMethod = sb.PaymentMethod, 
                         SalesPoint = sb.MoneyDrawer,
-                        SalesPerson = "سامى" 
+                        SalesPerson = sb.Employee.Name ?? "غير معروف"
                     }).ToList()
             };
 
@@ -1072,9 +1085,9 @@ namespace SmartMoon.MVC.Controllers
                         Quantity = item.Quantity,
                         SalePrice = item.SalePrice,
                         TotalPrice = item.TotalPrice,
-                        PaymentMethod = "نقدى", // Assuming cash, adapt as needed
+                        PaymentMethod = sb.PaymentMethod, // Assuming cash, adapt as needed
                         SalesPoint = sb.MoneyDrawer,
-                        SalesPerson = "سامى" // Assuming static salesperson, adapt as needed
+                        SalesPerson = sb.Employee.Name?? "غير معروف"
                     }).ToList()
             };
 
@@ -1158,7 +1171,7 @@ namespace SmartMoon.MVC.Controllers
                 context.supplierReceipts.Add(receipt);
                 context.SaveChanges();
 
-                TempData["Message"] = "!تم حفظ الايصال بنجاح";
+                
                 return RedirectToAction("Index", "Home");
             }
             model.moneyDrawers = context.moneyDrawer.ToList();
@@ -1207,7 +1220,7 @@ namespace SmartMoon.MVC.Controllers
                 context.supplierReceipts.Add(receipt);
                 context.SaveChanges();
 
-                TempData["Message"] = "!تم حفظ الايصال بنجاح";
+                
                 return RedirectToAction("Index", "Home");
             }
             model.moneyDrawers = context.moneyDrawer.ToList();
@@ -1268,9 +1281,9 @@ namespace SmartMoon.MVC.Controllers
                         PurchasePrice = item.PurchasePrice,
                         CashPaid = sb.CashPaid,
                         TotalPrice = item.Total,
-                        PaymentMethod = "نقدى", // Assuming cash, adapt as needed
+                        PaymentMethod = sb.PaymentMethod, // Assuming cash, adapt as needed
                         SalesPoint = sb.MoneyDrawer,
-                        SalesPerson = "سامى" // Assuming static salesperson, adapt as needed
+                        
                     }).ToList(),
                 TotalCashpaid = context.buyBill.Where(x => x.SupplierId == supplierId).Sum(x => x.CashPaid)
                     
@@ -1321,9 +1334,9 @@ namespace SmartMoon.MVC.Controllers
                         Quantity = item.Quantity,
                         PurchasePrice = item.PurchasePrice,
                         TotalPrice = item.Total,
-                        PaymentMethod = "نقدى", // Assuming cash, adapt as needed
+                        PaymentMethod = sb.PaymentMethod, 
                         SalesPoint = sb.MoneyDrawer,
-                        SalesPerson = "سامى" // Assuming static salesperson, adapt as needed
+                        
                     }).ToList()
             };
 
@@ -1374,8 +1387,8 @@ namespace SmartMoon.MVC.Controllers
 
             
             var lateInstallments =  context.salesBill
-                .Include(bill => bill.client) 
-                .Where(bill => bill.RemainingBalance > 0 && bill.client != null && bill.client.Balance < 0)
+                .Include(bill => bill.Client) 
+                .Where(bill => bill.RemainingBalance > 0 && bill.Client != null && bill.Client.Balance < 0)
                 .AsEnumerable()
                 .GroupBy(bill => bill.ClientId)
                 .Select(group => group
@@ -1383,10 +1396,10 @@ namespace SmartMoon.MVC.Controllers
                     .First())
                 .Select(bill => new LateInstallmentsViewModel
                 {
-                    Id = bill.client.Id,
-                    Name = bill.client.Name,
-                    PhoneNumber = bill.client.PhoneNumber,
-                    Balance = bill.client.Balance,
+                    Id = bill.Client.Id,
+                    Name = bill.Client.Name,
+                    PhoneNumber = bill.Client.PhoneNumber,
+                    Balance = bill.Client.Balance,
                     DaysLate = (int)(currentDate - bill.Date).TotalDays
                 })
                 .ToList();
@@ -1467,7 +1480,7 @@ namespace SmartMoon.MVC.Controllers
 
                 case "SalesBill": // SalesBill
                     query = context.salesBill
-                        .Include(sb => sb.client)
+                        .Include(sb => sb.Client)
                         .Where(sb => (string.IsNullOrEmpty(productName) || sb.Items.Any(i => i.Product.Name.Contains(productName))) &&
                                      
                                      (string.IsNullOrEmpty(moneyDrawer) || sb.MoneyDrawer == moneyDrawer) &&
@@ -1482,7 +1495,7 @@ namespace SmartMoon.MVC.Controllers
                             ProductName = sb.Items.Select(i => i.Product.Name).FirstOrDefault(),
                             Price = sb.Items.Select(i => i.Product.Price).FirstOrDefault(),
                             Quantity = sb.Items.Select(i=>i.Quantity),
-                            Name = sb.client.Name,
+                            Name = sb.Client.Name,
                             ItemCount = sb.Items.Count
                         });
                     break;
@@ -1609,7 +1622,7 @@ namespace SmartMoon.MVC.Controllers
                             .Select(batch => batch.PurchasePrice)
                             .FirstOrDefault())
                     }),
-                    User = s.client.Name ?? "غير معروف" 
+                    User = s.Client.Name ?? "غير معروف" 
                 })
                 .ToList();
 
@@ -1655,7 +1668,7 @@ namespace SmartMoon.MVC.Controllers
                     Date = s.Date.ToString("yyyy-MM-dd"),
                     Revenue = s.CashPaid,
                     Expense = 0,
-                    Description = $"فاتورة مبيعات {s.Id} العميل: {s.client.Name}",
+                    Description = $"فاتورة مبيعات {s.Id} العميل: {s.Client.Name}",
                     User = "المستخدم 2"
                 });
 
@@ -1934,10 +1947,12 @@ namespace SmartMoon.MVC.Controllers
             // Retrieve employee salary data
             var employeeSalaries = employees.Select(employee =>
             {
+                // Get net salary records for the current month
                 var netEmpSalaries = context.netEmpSalaries
                     .Where(n => n.EmployeeId == employee.Id && n.Date.Month == DateTime.Now.Month && n.Date.Year == DateTime.Now.Year)
                     .ToList();
 
+                // Calculate incentive, deduction, and advance
                 var incentive = netEmpSalaries
                     .Where(s => s.Item == "حافز")
                     .Sum(s => s.Amount);
@@ -1948,8 +1963,21 @@ namespace SmartMoon.MVC.Controllers
                     .Where(s => s.Item == "سلفة")
                     .Sum(s => s.Amount);
 
-                var netSalary = employee.Salary + incentive - deduction - advance;
+                // Fetch the total sales for the current month by this employee
+                var totalSales = context.salesBill
+                    .Where(s => s.EmployeeId == employee.Id && s.Date.Month == DateTime.Now.Month && s.Date.Year == DateTime.Now.Year)
+                    .Sum(s => s.TotalAmount);
 
+                // Get the sales commission ratio for the employee (assuming it's stored in the Employee table)
+                var salesRatio = employee.SalesRatio;
+
+                // Calculate the commission
+                var commission = totalSales * (salesRatio / 100);
+
+                // Calculate the net salary (fixed salary + commission - deductions and advances)
+                var netSalary = employee.Salary + commission + incentive - deduction - advance;
+
+                // Return the employee's salary data
                 return new EmployeeSalaryViewModel
                 {
                     EmployeeId = employee.Id,
@@ -1959,14 +1987,16 @@ namespace SmartMoon.MVC.Controllers
                     Incentive = incentive,
                     Deduction = deduction,
                     Advance = advance,
+                    
+                    TotalSales = totalSales,
                     NetSalary = netSalary
                 };
             }).ToList();
 
-           
+            // Retrieve money drawer names
             var moneyDrawerNames = context.moneyDrawer.Select(md => md.Name).ToList();
 
-            
+            // Create the view model to pass to the view
             var viewModel = new PayingSalariesViewModel
             {
                 Employees = employeeSalaries,
@@ -1975,6 +2005,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(viewModel);
         }
+
 
         [HttpPost]
         public IActionResult SaveTotalSalary(string SelectedMoneyDrawer, decimal TotalNetSalary)
@@ -1990,13 +2021,14 @@ namespace SmartMoon.MVC.Controllers
             if(drawer.CurrentBalance >= TotalNetSalary)
             {
                 drawer.CurrentBalance -= TotalNetSalary;
-                return BadRequest("رصيد الخزنة غير كافي للمرتبات");
-            }
-            context.totalSalaryRecords.Add(salaryRecord);
-            context.SaveChanges();
+                context.totalSalaryRecords.Add(salaryRecord);
+                context.SaveChanges();
 
-            TempData["SuccessMessage"] = "تم حفظ إجمالي المرتب بنجاح";
-            return RedirectToAction("PayingSalaries");
+
+                return RedirectToAction("PayingSalaries");
+
+            }
+            return BadRequest("رصيد الخزنة غير كافي للمرتبات");
         }
 
     }

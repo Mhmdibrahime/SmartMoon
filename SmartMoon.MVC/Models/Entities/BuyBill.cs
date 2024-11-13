@@ -10,7 +10,7 @@
         public decimal RemainingBalance { get; set; } // Amount remaining to be paid
         public string PaymentMethod { get; set; } // Payment Method (Cash, Credit, etc.)
         public string MoneyDrawer { get; set; }
-
+       
         public int SupplierId { get; set; }
         public Supplier Supplier { get; set; }
 

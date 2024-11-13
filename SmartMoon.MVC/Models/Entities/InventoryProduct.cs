@@ -7,6 +7,6 @@
 
         public Inventory Inventory { get; set; }
         public int InventoryId { get; set; }
-        public int Quantity { get; set; } // Quantity available in this inventory
+        public int Quantity { get; set; } 
     }
 }

@@ -78,8 +78,10 @@
                 <label for="filter-store">المخزن</label>
                 <select id="filter-store">
                     <option value="">جميع المخازن</option>
-                    <option value="مخزن 1">مخزن 1</option>
-                    <option value="مخزن 2">مخزن 2</option>
+                    @foreach (var inventory in Model.inventories)
+                    {
+                        <option value="@inventory.Name">@inventory.Name</option>
+                    }
                 </select>
             </div>
         </div>
@@ -96,19 +98,14 @@
                 </tr>
             </thead>
             <tbody id="items-table-body">
-                @foreach(var product in Model.Products)
+                @foreach(var item in Model.Products)
                 {
                     <tr>
-                        <td>@product.ProductName</td>
-                        <td>@product.Quantity</td>
-                        <td>@product.Price</td>
-                        <td>
-                        @foreach(var supplier in product.SuppliersName)
-                        {
-                                <span>@supplier</span><br/>                      
-                        }
-                        </td>
-                        <td></td>
+                        <td>@item.ProductName</td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Price</td>
+                        <td>@item.SupplierName</td>
+                        <td>@item.InventoryName</td>
                         <td><i class='bx bxs-edit edit-btn'></i></td>
                     </tr>
                 }

@@ -11,5 +11,7 @@ namespace SmartMoon.MVC.Models.ViewModels
         public List<ProductsViewModel> Products { get; set; }
         [ValidateNever]
         public List<Supplier>? Suppliers { get; set; }
+
+        public List<Inventory>? inventories { get; set; }
     }
 }

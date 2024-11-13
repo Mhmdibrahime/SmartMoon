@@ -55,6 +55,7 @@
                         <th>اسم الموظف</th>
                         <th>الوظيفة</th>
                         <th>الراتب</th>
+                        <th>إجمالي المبيعات لهذا الشهر</th>
                         <th>حافز</th>
                         <th>خصم</th>
                         <th>سلفة شهرية</th>
@@ -68,6 +69,7 @@
                             <td>@employee.Name</td>
                             <td>@employee.Job</td>
                             <td>@employee.BaseSalary.ToString("C")</td>
+                            <td>@employee.TotalSales.ToString("C")</td>
                             <td>@employee.Incentive.ToString("C")</td>
                             <td>@employee.Deduction.ToString("C")</td>
                             <td>@employee.Advance.ToString("C")</td>

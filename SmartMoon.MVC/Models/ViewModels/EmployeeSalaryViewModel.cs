@@ -10,6 +10,8 @@
         public decimal Deduction { get; set; }
         public decimal Advance { get; set; }
         public decimal NetSalary { get; set; }
+
+        public decimal TotalSales { get; set; }
     }
 
 }

@@ -30,5 +30,8 @@ namespace SmartMoon.MVC.Models.ViewModels
         [ValidateNever]
         public List<MoneyDrawer> MoneyDrawers { get; set; }
         public string MoneyDrawer { get; set; }
+
+        public List<Employee>? Employees { get; set; }  
+        public int? EmployeeId { get; set; }
     }
 }
