@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SmartMoon.MVC.Models.Data.Configurations;
 using SmartMoon.MVC.Models.Entities;
+using System.Security.Cryptography.Xml;
 
 namespace SmartMoon.MVC.Models.Data
 {
@@ -34,6 +35,8 @@ namespace SmartMoon.MVC.Models.Data
         public DbSet<Employee> employees { get; set; }
         public DbSet<NetEmpSalary> netEmpSalaries { get; set; }
         public DbSet<TotalSalaryRecord> totalSalaryRecords { get; set; }
+        public DbSet<TransferBetweenMoneyDrawers> Transfers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

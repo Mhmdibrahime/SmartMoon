@@ -8,6 +8,7 @@ using SmartMoon.MVC.Models.Entities;
 using SmartMoon.MVC.Models.ViewModels;
 using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 
 namespace SmartMoon.MVC.Controllers
 {
@@ -105,9 +106,9 @@ namespace SmartMoon.MVC.Controllers
             {
                 ProductName = p.Name,
                 Price = p.Price,
-                SupplierName = p.productSuppliers.Select(ps => ps.Supplier.Name).FirstOrDefault(), // Assuming one supplier per product
-                InventoryName = g.Key.Name, // Name of the inventory (group key)
-                Quantity = g.Sum(pb => pb.Quantity) // Sum of quantities for all batches in this inventory
+                SupplierName = p.productSuppliers.Select(ps => ps.Supplier.Name).FirstOrDefault(), 
+                InventoryName = g.Key.Name, 
+                Quantity = g.Sum(pb => pb.Quantity) 
             }))
         .ToList();
 
@@ -736,18 +737,39 @@ namespace SmartMoon.MVC.Controllers
             {
                 var from = context.moneyDrawer.FirstOrDefault(x => x.Id == model.FromId);
                 var to = context.moneyDrawer.FirstOrDefault(y => y.Id == model.ToId);
-                if(from !=  null && to != null)
+
+                if (from != null && to != null)
                 {
+                    
                     from.CurrentBalance -= model.TotalAmount;
                     to.CurrentBalance += model.TotalAmount;
+
+                    
                     context.moneyDrawer.Update(from);
                     context.moneyDrawer.Update(to);
+
+                    
+                    var transfer = new TransferBetweenMoneyDrawers
+                    {
+                        FromMoneyDrawerId = model.FromId,
+                        ToMoneyDrawerId = model.ToId,
+                        Amount = model.TotalAmount,
+                        Date = DateTime.Now 
+                    };
+
+                    
+                    context.Transfers.Add(transfer);
+
+                    
+                    context.SaveChanges();
                 }
-                context.SaveChanges();
+
                 return RedirectToAction("TransferBetweenMoneyDrawers", "Admin");
             }
+
             return View("TransferBetweenMoneyDrawers", model);
         }
+
 
         [HttpGet]
         public IActionResult TransferBetweenInventories()
@@ -1644,10 +1666,9 @@ namespace SmartMoon.MVC.Controllers
         [HttpGet]
         public IActionResult Filtered(DateTime? startDate, DateTime? endDate, string moneyDrawer)
         {
-            startDate ??= DateTime.Now.AddMonths(-1);  
-            endDate ??= DateTime.Now;  
+            startDate ??= DateTime.Now.AddMonths(-1);
+            endDate ??= DateTime.Now;
 
-            
             var buyBills = context.buyBill
                 .Where(b => b.Date >= startDate && b.Date <= endDate && b.MoneyDrawer == moneyDrawer)
                 .Select(b => new
@@ -1696,13 +1717,59 @@ namespace SmartMoon.MVC.Controllers
                     User = "المستخدم 4"
                 });
 
-            // Fetch the operations data from different sources
-            var buyOperations =  buyBills.ToList();
-            var salesOperations =  salesBills.ToList();
-            var salesReturnOperations =  salesReturnBills.ToList();
-            var purchaseReturnOperations =  purchaseReturnBills.ToList();
+            var clientReceipts = context.clientReceipts
+                .Where(c => c.Date >= startDate && c.Date <= endDate && c.MoneyDrawer == moneyDrawer)
+                .Select(c => new
+                {
+                    Time = c.Date.ToString("hh:mm tt"),
+                    Date = c.Date.ToString("yyyy-MM-dd"),
+                    Revenue = c.Type == "استلام" ? c.AmountPaid : 0,
+                    Expense = c.Type == "صرف" ? c.AmountPaid : 0,
+                    Description = $"سند ايصال مورد {c.Id} العميل: {c.Client.Name}",
+                    User = "المستخدم 5"
+                });
 
-            // Concatenate and project the data into OperationType objects
+            var supplierReceipts = context.supplierReceipts
+                .Where(s => s.Date >= startDate && s.Date <= endDate && s.MoneyDrawer == moneyDrawer)
+                .Select(s => new
+                {
+                    Time = s.Date.ToString("hh:mm tt"),
+                    Date = s.Date.ToString("yyyy-MM-dd"),
+                    Revenue = s.Type == "استلام" ? s.AmountPaid : 0,
+                    Expense = s.Type == "صرف" ? s.AmountPaid : 0,
+                    Description = $"سند ايصال مورد {s.Id} المورد: {s.Supplier.Name}",
+                    User = "المستخدم 6"
+                });
+
+            
+            var transfers = context.Transfers
+                .Where(t => t.Date >= startDate && t.Date <= endDate &&
+                           (t.FromMoneyDrawer.Name == moneyDrawer || t.ToMoneyDrawer.Name == moneyDrawer))
+                .Select(t => new
+                {
+                    Time = t.Date.ToString("hh:mm tt"),
+                    Date = t.Date.ToString("yyyy-MM-dd"),
+                    Revenue = t.ToMoneyDrawer.Name == moneyDrawer ? t.Amount : 0,
+                    Expense = t.FromMoneyDrawer.Name == moneyDrawer ? t.Amount : 0,
+                    Description = t.FromMoneyDrawer.Name == moneyDrawer
+                                  ? $"تحويل من الخزينة {t.FromMoneyDrawer.Name} \n"+
+                                  $" إلى الخزينة {t.ToMoneyDrawer.Name}"
+
+                                  : $"تحويل إلى الخزينة {t.ToMoneyDrawer.Name} \n"+
+                                   $" من الخزينة {t.FromMoneyDrawer.Name}",
+                    User = "المستخدم 7"
+                });
+
+            
+            var buyOperations = buyBills.ToList();
+            var salesOperations = salesBills.ToList();
+            var salesReturnOperations = salesReturnBills.ToList();
+            var purchaseReturnOperations = purchaseReturnBills.ToList();
+            var clientReceiptOperations = clientReceipts.ToList();
+            var supplierReceiptOperations = supplierReceipts.ToList();
+            var transferOperations = transfers.ToList();
+
+            
             var allOperations = buyOperations
                 .Select(b => new OperationType
                 {
@@ -1740,15 +1807,41 @@ namespace SmartMoon.MVC.Controllers
                     Description = pr.Description,
                     User = pr.User
                 }))
+                .Concat(clientReceiptOperations.Select(cr => new OperationType
+                {
+                    Date = cr.Date,
+                    Time = cr.Time,
+                    Revenue = cr.Revenue,
+                    Expense = cr.Expense,
+                    Description = cr.Description,
+                    User = cr.User
+                }))
+                .Concat(supplierReceiptOperations.Select(sr => new OperationType
+                {
+                    Date = sr.Date,
+                    Time = sr.Time,
+                    Revenue = sr.Revenue,
+                    Expense = sr.Expense,
+                    Description = sr.Description,
+                    User = sr.User
+                }))
+                .Concat(transferOperations.Select(tr => new OperationType
+                {
+                    Date = tr.Date,
+                    Time = tr.Time,
+                    Revenue = tr.Revenue,
+                    Expense = tr.Expense,
+                    Description = tr.Description,
+                    User = tr.User
+                }))
                 .OrderBy(o => o.Date)
                 .ThenBy(o => o.Time)
                 .ToList();
 
-
-
-
             return Json(allOperations);
         }
+
+
 
         public IActionResult ViewNetProfit()
         {
