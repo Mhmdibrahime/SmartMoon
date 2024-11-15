@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using NuGet.Versioning;
 using SmartMoon.MVC.Models.CustomAuthorization;
 using SmartMoon.MVC.Models.Data;
@@ -8,6 +9,7 @@ using SmartMoon.MVC.Models.Entities;
 using SmartMoon.MVC.Models.ViewModels;
 using System.Drawing;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography.Xml;
 
 namespace SmartMoon.MVC.Controllers
@@ -21,7 +23,8 @@ namespace SmartMoon.MVC.Controllers
             this.context = context;
         }
 
-        //[AuthorizePermission("إضافة عميل")]
+        
+        [Permission("إضافة عميل")]
         public ActionResult AddClient() 
         {
             return View();
@@ -29,7 +32,8 @@ namespace SmartMoon.MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //[AuthorizePermission("إضافة عميل")]
+        
+        [Permission("إضافة عميل")]
         public IActionResult AddClient(NewClientViewModel model)
         {
             if (ModelState.IsValid)
@@ -147,7 +151,7 @@ namespace SmartMoon.MVC.Controllers
             return RedirectToAction("ViewProducts");
         }
 
-        // Delete a product and its related records
+        
         [HttpGet]
         public IActionResult DeleteProduct(int id)
         {
@@ -167,7 +171,8 @@ namespace SmartMoon.MVC.Controllers
             return RedirectToAction("ViewProductsShortcomings");
         }
 
-        //[AuthorizePermission("إنشاء فاتورة مبيعات")]
+        
+        
         public IActionResult CreatePurchaseBill()
         {
             var model = new PurchaseBillViewModel
@@ -182,7 +187,8 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        //[AuthorizePermission("إنشاء فاتورة مبيعات")]
+        
+        
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult CreatePurchaseBill(PurchaseBillViewModel model)
@@ -191,16 +197,17 @@ namespace SmartMoon.MVC.Controllers
             {
                 model.TotalAmount = model.Items.Sum(item => item.PurchasePrice * item.Quantity);
                 model.RemainingBalance = model.TotalAmount - model.DiscountAmount - model.CashPaid;
-
+                var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
                 var bill = new BuyBill
                 {
                     SupplierId = model.SupplierId,
                     PaymentMethod = model.PaymentMethod,
                     DiscountAmount = model.DiscountAmount,
                     CashPaid = model.CashPaid,
-                    RemainingBalance =model.RemainingBalance,
+                    RemainingBalance = model.RemainingBalance,
                     MoneyDrawer = model.MoneyDrawer,
                     TotalAmount = model.TotalAmount,
+                    UserId = userId,
                     Date = DateTime.Now,
                     BillItems = model.Items.Select(item => new BuyBillItem
                     {
@@ -223,6 +230,7 @@ namespace SmartMoon.MVC.Controllers
                 var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
                 if (moneyDrawer != null)
                 {
+                    if (moneyDrawer.CurrentBalance < model.CashPaid) return BadRequest("!رصيد الخزنة غير كافي");
                     moneyDrawer.CurrentBalance -= model.CashPaid;
                     context.moneyDrawer.Update(moneyDrawer);
                 }
@@ -291,8 +299,9 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        // GET: Create sales bill
-        // GET: Create sales bill
+        
+
+        [Permission("إنشاء فاتورة مبيعات")]
         [HttpGet]
         public IActionResult CreateSalesBill()
         {
@@ -310,12 +319,15 @@ namespace SmartMoon.MVC.Controllers
         }
 
 
+        [Permission("إنشاء فاتورة مبيعات")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateSalesBill(SalesBillViewModel model)
         {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
             if (ModelState.IsValid)
             {
+                
                 var salesBill = new SalesBill
                 {
                     
@@ -326,6 +338,7 @@ namespace SmartMoon.MVC.Controllers
                     RemainingBalance = model.RemainingBalance,
                     MoneyDrawer = model.MoneyDrawer,
                     Date = DateTime.Now,
+                    UserId = userId,
                     EmployeeId = model.EmployeeId,  
                     PaymentMethod = model.PaymentMethod,  
                     Items = new List<SalesBillItem>()
@@ -446,7 +459,7 @@ namespace SmartMoon.MVC.Controllers
         }
 
 
-        // GET: Create purchase return bill
+        
         [HttpGet]
         public IActionResult CreatePurchaseReturnBill()
         {
@@ -462,11 +475,12 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        // POST: Create purchase return bill and update inventory
+        
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult CreatePurchaseReturnBill(PurchaseBillViewModel model)
         {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
             if (ModelState.IsValid)
             {
                 model.TotalAmount = model.Items.Sum(item => item.PurchasePrice * item.Quantity);
@@ -481,6 +495,7 @@ namespace SmartMoon.MVC.Controllers
                     RemainingBalance = model.RemainingBalance,
                     MoneyDrawer = model.MoneyDrawer,
                     TotalAmount = model.TotalAmount,
+                    UserId = userId,
                     Date = DateTime.Now,
                     BillItems = model.Items.Select(item => new PurchaseReturnBillItem
                     {
@@ -546,7 +561,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        // GET: Create return sales bill
+        
         [HttpGet]
         public IActionResult CreateReturnSalesBill()
         {
@@ -562,11 +577,12 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        // POST: Create return sales bill and update inventory
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateReturnSalesBill(SalesBillViewModel model)
         {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
             if (ModelState.IsValid)
             {
                 var salesBill = new SalesReturnBill
@@ -578,6 +594,7 @@ namespace SmartMoon.MVC.Controllers
                     RemainingBalance = model.RemainingBalance,
                     PaymentMethod = model.PaymentMethod,
                     MoneyDrawer = model.MoneyDrawer,
+                    UserId = userId,
                     Date = DateTime.Now,
                     Items = model.Items.Select(i => new SalesReturnBillItem
                     {
@@ -748,12 +765,13 @@ namespace SmartMoon.MVC.Controllers
                     context.moneyDrawer.Update(from);
                     context.moneyDrawer.Update(to);
 
-                    
+                    var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
                     var transfer = new TransferBetweenMoneyDrawers
                     {
                         FromMoneyDrawerId = model.FromId,
                         ToMoneyDrawerId = model.ToId,
                         Amount = model.TotalAmount,
+                        UserId = userId,
                         Date = DateTime.Now 
                     };
 
@@ -910,7 +928,7 @@ namespace SmartMoon.MVC.Controllers
             return View(viewModel);
         }
 
-        // GET: Get client's previous balance via AJAX
+        
         [HttpGet]
         public IActionResult GetClientBalance(int clientId)
         {
@@ -931,7 +949,7 @@ namespace SmartMoon.MVC.Controllers
             return Ok(clients);
         }
 
-        // POST: Process the receipt form submission
+        
         [HttpPost]
         public IActionResult SaveFromClientReceipt(ReceiptViewModel model)
         {
@@ -948,12 +966,15 @@ namespace SmartMoon.MVC.Controllers
                 client.Balance += model.PaymentAmount;
                 moneyDrawer.CurrentBalance += model.PaymentAmount;
 
+                var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
+
                 var receipt = new ClientReceipt
                 {
                     ClientId = model.Id,
                     AmountPaid = model.PaymentAmount,
                     Type = "استلام",
                     MoneyDrawer = moneyDrawer.Name,
+                    UserId = userId,
                     Date = DateTime.Now
                 };
 
@@ -980,7 +1001,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(viewModel);
         }
-        // POST: Process the receipt form submission
+        
         [HttpPost]
         public IActionResult SaveToClientReceipt(ReceiptViewModel model)
         {
@@ -997,12 +1018,15 @@ namespace SmartMoon.MVC.Controllers
                 client.Balance -= model.PaymentAmount;
                 moneyDrawer.CurrentBalance -= model.PaymentAmount;
 
+                var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
+
                 var receipt = new ClientReceipt
                 {
                     ClientId = model.Id,
                     AmountPaid = model.PaymentAmount,
                     Type = "صرف",
                     MoneyDrawer = moneyDrawer.Name,
+                    UserId = userId,
                     Date = DateTime.Now
                 };
 
@@ -1070,7 +1094,7 @@ namespace SmartMoon.MVC.Controllers
             return View("AccountStatement", viewModel); // Ensure that the view is named AccountStatement.cshtml
         }
 
-        // Action to view receipts and sales bills filtered by date range
+       
         [HttpGet]
         public IActionResult FilteredAccountStatement(int clientId, DateTime startDate, DateTime endDate)
         {
@@ -1181,12 +1205,15 @@ namespace SmartMoon.MVC.Controllers
                 supplier.Balance += model.PaymentAmount;
                 moneyDrawer.CurrentBalance += model.PaymentAmount;
 
+                var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
+
                 var receipt = new SupplierReceipt
                 {
                     SupplierId = model.Id,
                     AmountPaid = model.PaymentAmount,
                     Type = "استلام",
                     MoneyDrawer = moneyDrawer.Name,
+                    UserId = userId,
                     Date = DateTime.Now
                 };
 
@@ -1213,7 +1240,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(viewModel);
         }
-        // POST: Process the receipt form submission
+        
         [HttpPost]
         public IActionResult SaveToSupplierReceipt(ReceiptViewModel model)
         {
@@ -1230,12 +1257,16 @@ namespace SmartMoon.MVC.Controllers
                 supplier.Balance -= model.PaymentAmount;
                 moneyDrawer.CurrentBalance -= model.PaymentAmount;
 
+
+                var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
+
                 var receipt = new SupplierReceipt
                 {
                     SupplierId = model.Id,
                     AmountPaid = model.PaymentAmount,
                     Type = "صرف",
                     MoneyDrawer = moneyDrawer.Name,
+                    UserId = userId,
                     Date = DateTime.Now
                 };
 
@@ -1319,7 +1350,7 @@ namespace SmartMoon.MVC.Controllers
             return View("SupplierAccountStatement", viewModel); // Ensure that the view is named AccountStatement.cshtml
         }
 
-        // Action to view receipts and sales bills filtered by date range
+        
         [HttpGet]
         public IActionResult SupplierFilteredAccountStatement(int supplierId, DateTime startDate, DateTime endDate)
         {
@@ -1429,10 +1460,6 @@ namespace SmartMoon.MVC.Controllers
             return View(lateInstallments);
         }
 
-
-
-
-
         [HttpGet]
         public IActionResult FinancialPosition()
         {
@@ -1467,13 +1494,7 @@ namespace SmartMoon.MVC.Controllers
             return View(drawres);
         }
         [HttpGet]
-        public async Task<IActionResult> GetFilteredReport(
-     string productName,
-    
-     string moneyDrawer,
-     DateTime? startDate,
-     DateTime? endDate,
-     string operationType)
+        public async Task<IActionResult> GetFilteredReport(string productName, string moneyDrawer, DateTime? startDate, DateTime? endDate, string operationType)
         {
             IQueryable<dynamic> query;
 
@@ -1490,7 +1511,7 @@ namespace SmartMoon.MVC.Controllers
                         .Select(bb => new
                         {
                             bb.Date,
-                            
+
                             bb.MoneyDrawer,
                             ProductName = bb.BillItems.Select(bi => bi.Product.Name).FirstOrDefault(),
                             Price = bb.BillItems.Select(bi => bi.Product.Price).FirstOrDefault(),
@@ -1504,19 +1525,19 @@ namespace SmartMoon.MVC.Controllers
                     query = context.salesBill
                         .Include(sb => sb.Client)
                         .Where(sb => (string.IsNullOrEmpty(productName) || sb.Items.Any(i => i.Product.Name.Contains(productName))) &&
-                                     
+
                                      (string.IsNullOrEmpty(moneyDrawer) || sb.MoneyDrawer == moneyDrawer) &&
                                      (!startDate.HasValue || sb.Date >= startDate.Value) &&
                                      (!endDate.HasValue || sb.Date <= endDate.Value))
                         .Select(sb => new
                         {
                             sb.Date,
-                           
+
                             sb.MoneyDrawer,
 
                             ProductName = sb.Items.Select(i => i.Product.Name).FirstOrDefault(),
                             Price = sb.Items.Select(i => i.Product.Price).FirstOrDefault(),
-                            Quantity = sb.Items.Select(i=>i.Quantity),
+                            Quantity = sb.Items.Select(i => i.Quantity),
                             Name = sb.Client.Name,
                             ItemCount = sb.Items.Count
                         });
@@ -1526,14 +1547,14 @@ namespace SmartMoon.MVC.Controllers
                     query = context.salesReturnBills
                         .Include(srb => srb.client)
                         .Where(srb => (string.IsNullOrEmpty(productName) || srb.Items.Any(i => i.Product.Name.Contains(productName))) &&
-                                     
+
                                      (string.IsNullOrEmpty(moneyDrawer) || srb.MoneyDrawer == moneyDrawer) &&
                                      (!startDate.HasValue || srb.Date >= startDate.Value) &&
                                      (!endDate.HasValue || srb.Date <= endDate.Value))
                         .Select(srb => new
                         {
                             srb.Date,
-                            
+
                             srb.MoneyDrawer,
                             ProductName = srb.Items.Select(i => i.Product.Name).FirstOrDefault(),
                             Price = srb.Items.Select(i => i.Product.Price).FirstOrDefault(),
@@ -1543,7 +1564,7 @@ namespace SmartMoon.MVC.Controllers
                         });
                     break;
 
-                case "PurchaseReturnBill": 
+                case "PurchaseReturnBill":
                     query = context.purchaseReturnBills
                         .Include(pr => pr.Supplier)
                         .Where(pr => (string.IsNullOrEmpty(productName) || pr.BillItems.Any(bi => bi.Product.Name.Contains(productName))) &&
@@ -1553,7 +1574,7 @@ namespace SmartMoon.MVC.Controllers
                         .Select(pr => new
                         {
                             pr.Date,
-                            
+
                             pr.MoneyDrawer,
                             ProductName = pr.BillItems.Select(bi => bi.Product.Name).FirstOrDefault(),
                             Price = pr.BillItems.Select(bi => bi.Product.Price).FirstOrDefault(),
@@ -1678,7 +1699,7 @@ namespace SmartMoon.MVC.Controllers
                     Revenue = 0,
                     Expense = b.CashPaid,
                     Description = $"فاتورة شراء {b.Id} المورد: {b.Supplier.Name}",
-                    User = "المستخدم 1"
+                    User = b.User.UserName ?? "غير معروف"
                 });
 
             var salesBills = context.salesBill
@@ -1690,7 +1711,7 @@ namespace SmartMoon.MVC.Controllers
                     Revenue = s.CashPaid,
                     Expense = 0,
                     Description = $"فاتورة مبيعات {s.Id} العميل: {s.Client.Name}",
-                    User = "المستخدم 2"
+                    User = s.User.UserName ?? "غير معروف"
                 });
 
             var salesReturnBills = context.salesReturnBills
@@ -1702,7 +1723,7 @@ namespace SmartMoon.MVC.Controllers
                     Revenue = 0,
                     Expense = s.CashPaid,
                     Description = $"مرتجع مبيعات {s.Id} العميل: {s.client.Name}",
-                    User = "المستخدم 3"
+                    User = s.User.UserName ?? "غير معروف"
                 });
 
             var purchaseReturnBills = context.purchaseReturnBills
@@ -1714,7 +1735,7 @@ namespace SmartMoon.MVC.Controllers
                     Revenue = p.CashPaid,
                     Expense = 0,
                     Description = $"مرتجع شراء {p.Id} المورد: {p.Supplier.Name}",
-                    User = "المستخدم 4"
+                    User = p.User.UserName ?? "غير معروف"
                 });
 
             var clientReceipts = context.clientReceipts
@@ -1726,7 +1747,7 @@ namespace SmartMoon.MVC.Controllers
                     Revenue = c.Type == "استلام" ? c.AmountPaid : 0,
                     Expense = c.Type == "صرف" ? c.AmountPaid : 0,
                     Description = $"سند ايصال مورد {c.Id} العميل: {c.Client.Name}",
-                    User = "المستخدم 5"
+                    User = c.User.UserName ?? "غير معروف"
                 });
 
             var supplierReceipts = context.supplierReceipts
@@ -1738,7 +1759,7 @@ namespace SmartMoon.MVC.Controllers
                     Revenue = s.Type == "استلام" ? s.AmountPaid : 0,
                     Expense = s.Type == "صرف" ? s.AmountPaid : 0,
                     Description = $"سند ايصال مورد {s.Id} المورد: {s.Supplier.Name}",
-                    User = "المستخدم 6"
+                    User = s.User.UserName ?? "غير معروف"
                 });
 
             
@@ -1754,13 +1775,24 @@ namespace SmartMoon.MVC.Controllers
                     Description = t.FromMoneyDrawer.Name == moneyDrawer
                                   ? $"تحويل من الخزينة {t.FromMoneyDrawer.Name} \n"+
                                   $" إلى الخزينة {t.ToMoneyDrawer.Name}"
-
+    
                                   : $"تحويل إلى الخزينة {t.ToMoneyDrawer.Name} \n"+
                                    $" من الخزينة {t.FromMoneyDrawer.Name}",
-                    User = "المستخدم 7"
+                    User = t.User.UserName ?? "غير معروف"
+                });
+            var salaryRecords = context.totalSalaryRecords
+                .Where(sr => sr.Date >= startDate && sr.Date <= endDate && sr.MoneyDrawer == moneyDrawer)
+                .Select(sr => new
+                {
+                    Time = sr.Date.ToString("hh:mm tt"),
+                    Date = sr.Date.ToString("yyyy-MM-dd"),
+                    Revenue = 0,
+                    Expense = sr.TotalNetSalary,
+                    Description = $"صرف مرتبات لشهر {sr.Date.ToString("MMMM yyyy")}",
+                    User = sr.User.UserName ?? "غير معروف"
                 });
 
-            
+
             var buyOperations = buyBills.ToList();
             var salesOperations = salesBills.ToList();
             var salesReturnOperations = salesReturnBills.ToList();
@@ -1768,8 +1800,8 @@ namespace SmartMoon.MVC.Controllers
             var clientReceiptOperations = clientReceipts.ToList();
             var supplierReceiptOperations = supplierReceipts.ToList();
             var transferOperations = transfers.ToList();
+            var salaryOperations = salaryRecords.ToList();
 
-            
             var allOperations = buyOperations
                 .Select(b => new OperationType
                 {
@@ -1834,14 +1866,21 @@ namespace SmartMoon.MVC.Controllers
                     Description = tr.Description,
                     User = tr.User
                 }))
+                .Concat(salaryOperations.Select(sr => new OperationType
+                {
+                    Date = sr.Date,
+                    Time = sr.Time,
+                    Revenue = sr.Revenue,
+                    Expense = sr.Expense,
+                    Description = sr.Description,
+                    User = sr.User
+                }))
                 .OrderBy(o => o.Date)
                 .ThenBy(o => o.Time)
                 .ToList();
 
             return Json(allOperations);
         }
-
-
 
         public IActionResult ViewNetProfit()
         {
@@ -2099,30 +2138,44 @@ namespace SmartMoon.MVC.Controllers
             return View(viewModel);
         }
 
-
         [HttpPost]
         public IActionResult SaveTotalSalary(string SelectedMoneyDrawer, decimal TotalNetSalary)
         {
             
+            var currentMonth = DateTime.Now.Month;
+            var currentYear = DateTime.Now.Year;
+
+            bool salaryAlreadyPaid = context.totalSalaryRecords
+                .Any(record => record.Date.Month == currentMonth && record.Date.Year == currentYear);
+
+            if (salaryAlreadyPaid)
+            {
+                return BadRequest("المرتبات لهذا الشهر قد تم دفعها بالفعل.");
+            }
+
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value;
             var salaryRecord = new TotalSalaryRecord
             {
                 MoneyDrawer = SelectedMoneyDrawer,
                 TotalNetSalary = TotalNetSalary,
+                UserId = userId,
                 Date = DateTime.Now
             };
+
             var drawer = context.moneyDrawer.FirstOrDefault(x => x.Name == SelectedMoneyDrawer);
-            if(drawer.CurrentBalance >= TotalNetSalary)
+
+            if (drawer != null && drawer.CurrentBalance >= TotalNetSalary)
             {
                 drawer.CurrentBalance -= TotalNetSalary;
                 context.totalSalaryRecords.Add(salaryRecord);
                 context.SaveChanges();
 
-
                 return RedirectToAction("PayingSalaries");
-
             }
+
             return BadRequest("رصيد الخزنة غير كافي للمرتبات");
         }
+
 
     }
 }

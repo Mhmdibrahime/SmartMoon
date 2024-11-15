@@ -20,16 +20,16 @@ namespace SmartMoon.MVC
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("constr"));
             });
-            builder.Services.AddIdentity<ApplicationUser,IdentityRole>(options =>
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireDigit = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
                 options.User.AllowedUserNameCharacters = null;
-            })
-                .AddDefaultTokenProviders()
-                .AddEntityFrameworkStores<AppDbContext>();
+            }).AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
+                
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAllOrigins",
@@ -40,12 +40,18 @@ namespace SmartMoon.MVC
                                .AllowAnyHeader();
                     });
             });
-            builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
-            builder.Services.AddHttpContextAccessor(); // Register IHttpContextAccessor for dependency injection
+            //builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
+            //builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<PermissionService>();
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Account/Login"; 
+            });
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+           
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");

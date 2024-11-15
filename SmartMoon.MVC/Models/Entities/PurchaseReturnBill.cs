@@ -14,6 +14,9 @@
         public int SupplierId { get; set; }
         public Supplier Supplier { get; set; }
 
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
+
         public ICollection<PurchaseReturnBillItem> BillItems { get; set; } // List of items in the bill
 
     }

@@ -7,15 +7,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace SmartMoon.MVC.Models.CustomAuthorization
 {
-    public class AuthorizePermissionAttribute : AuthorizeAttribute
-    {
-        public string Permission { get; }
+    //public class AuthorizePermissionAttribute : AuthorizeAttribute
+    //{
+    //    public string Permission { get; }
 
-        public AuthorizePermissionAttribute(string permission)
-        {
-            Permission = permission;
-        }
-    }
+    //    public AuthorizePermissionAttribute(string permission)
+    //    {
+    //        Permission = permission;
+    //    }
+    //}
 
 
 }

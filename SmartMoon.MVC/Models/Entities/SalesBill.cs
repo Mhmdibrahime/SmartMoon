@@ -12,7 +12,10 @@
         public DateTime Date { get; set; }
 
         public string? PaymentMethod { get; set; }
-        public int? EmployeeId { get; set; }  
+        public int? EmployeeId { get; set; }
+
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
 
         public Client Client { get; set; }
         public Employee Employee { get; set; }  

@@ -10,6 +10,9 @@
 
         public string? MoneyDrawer { get; set; }
         public virtual Client? Client { get; set; }
+
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
     }
 
 }

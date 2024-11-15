@@ -13,7 +13,9 @@
         public string? PaymentMethod { get; set; }
         public DateTime Date { get; set; }
 
-        // Navigation property for related entities
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
+
         public Client client { get; set; }
         public ICollection<SalesReturnBillItem> Items { get; set; }
     }

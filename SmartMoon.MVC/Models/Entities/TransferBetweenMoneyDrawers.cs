@@ -10,5 +10,8 @@
 
         public virtual MoneyDrawer FromMoneyDrawer { get; set; }
         public virtual MoneyDrawer ToMoneyDrawer { get; set; }
+
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
     }
 }
