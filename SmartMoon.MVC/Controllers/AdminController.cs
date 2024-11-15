@@ -59,11 +59,13 @@ namespace SmartMoon.MVC.Controllers
             }
             return View(model);
         }
-
+        [Permission("إضافة مورد")]
         public IActionResult AddSupplier()
         {
             return View();
         }
+
+        [Permission("إضافة مورد")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AddSupplier(NewSupplierViewModel model)
@@ -93,7 +95,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-
+        [Permission("عرض المنتجات")]
         public IActionResult ViewProducts()
         {
 
@@ -128,7 +130,7 @@ namespace SmartMoon.MVC.Controllers
 
 
 
-
+        [Permission("إضافة منتج")]
         public IActionResult AddProduct(ViewProductsWithSuppliersViewModel model)
         {
             if (ModelState.IsValid)
@@ -151,7 +153,8 @@ namespace SmartMoon.MVC.Controllers
             return RedirectToAction("ViewProducts");
         }
 
-        
+
+        [Permission("حذف منتج")]
         [HttpGet]
         public IActionResult DeleteProduct(int id)
         {
@@ -171,8 +174,8 @@ namespace SmartMoon.MVC.Controllers
             return RedirectToAction("ViewProductsShortcomings");
         }
 
-        
-        
+
+        [Permission("إنشاء فاتورة شراء")]
         public IActionResult CreatePurchaseBill()
         {
             var model = new PurchaseBillViewModel
@@ -187,8 +190,8 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        
-        
+
+        [Permission("إنشاء فاتورة شراء")]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult CreatePurchaseBill(PurchaseBillViewModel model)
@@ -434,6 +437,7 @@ namespace SmartMoon.MVC.Controllers
 
 
 
+        
         [HttpGet]
         public IActionResult GetAvailableStock(int productId, int inventoryId)
         {
@@ -459,7 +463,7 @@ namespace SmartMoon.MVC.Controllers
         }
 
 
-        
+        [Permission("إنشاء فاتورة مردود شراء")]
         [HttpGet]
         public IActionResult CreatePurchaseReturnBill()
         {
@@ -475,7 +479,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        
+        [Permission("إنشاء فاتورة مردود شراء")]
         [HttpPost]
         [AutoValidateAntiforgeryToken]
         public IActionResult CreatePurchaseReturnBill(PurchaseBillViewModel model)
@@ -561,7 +565,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        
+        [Permission("إنشاء فاتورة مردود مبيعات")]
         [HttpGet]
         public IActionResult CreateReturnSalesBill()
         {
@@ -577,7 +581,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-        
+        [Permission("إنشاء فاتورة مردود مبيعات")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult CreateReturnSalesBill(SalesBillViewModel model)
@@ -662,6 +666,8 @@ namespace SmartMoon.MVC.Controllers
             model.products = context.products.ToList();
             return View(model);
         }
+
+        [Permission("إضافة مصروف")]
         [HttpGet]
         public IActionResult AddExpense()
         {
@@ -670,6 +676,8 @@ namespace SmartMoon.MVC.Controllers
             expense.moneyDrawers=context.moneyDrawer.ToList();
             return View(expense);
         }
+
+        [Permission("إضافة مصروف")]
         [HttpPost]
         public IActionResult AddNewExpense(ExpenseViewModel model)
         {
@@ -686,6 +694,7 @@ namespace SmartMoon.MVC.Controllers
             }
             return View(model);
         }
+        [Permission("إضافة مصروف")]
         public IActionResult AddExpense(ExpenseViewModel model)
         {
             if (ModelState.IsValid)
@@ -722,6 +731,7 @@ namespace SmartMoon.MVC.Controllers
             model.moneyDrawers = context.moneyDrawer.ToList();
             return View(model);
         }
+        [Permission("التحويل بين الخزنات")]
         [HttpGet]
         public IActionResult TransferBetweenMoneyDrawers()
         {
@@ -731,6 +741,7 @@ namespace SmartMoon.MVC.Controllers
             };
             return View(model);
         }
+        [Permission("إضافة خزنة جديدة")]
         [HttpPost]
         public IActionResult AddNewMoneyDrawer(TransferMoneyViewModel model)
         {
@@ -747,6 +758,7 @@ namespace SmartMoon.MVC.Controllers
             }
             return View("TransferBetweenMoneyDrawers",model);
         }
+        [Permission("التحويل بين الخزنات")]
         [HttpPost]
         public IActionResult SaveTransfer(TransferMoneyViewModel model)
         {
@@ -788,7 +800,7 @@ namespace SmartMoon.MVC.Controllers
             return View("TransferBetweenMoneyDrawers", model);
         }
 
-
+        [Permission("التحويل بين المخازن")]
         [HttpGet]
         public IActionResult TransferBetweenInventories()
         {
@@ -800,7 +812,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(model);
         }
-
+        [Permission("التحويل بين المخازن")]
         [HttpPost]
         public async Task<IActionResult> SaveTransferBetweenInventories(TransferViewModel model)
         {
@@ -896,6 +908,7 @@ namespace SmartMoon.MVC.Controllers
             return Json(products);
         }
 
+        [Permission("إضافة مخزون جديد")]
         [HttpPost]
         public IActionResult AddNewInventory(TransferProductsViewModels model)
         {
@@ -913,6 +926,7 @@ namespace SmartMoon.MVC.Controllers
             model.products = context.products.Where(x => x.Quantity > 0).ToList();
             return View("TransferBetweenInventories",model);
         }
+        [Permission("إضافة إيصال من العميل")]
         [HttpGet]
         public IActionResult AddFromClientReceipt()
         {
@@ -949,7 +963,7 @@ namespace SmartMoon.MVC.Controllers
             return Ok(clients);
         }
 
-        
+        [Permission("إضافة إيصال من العميل")]
         [HttpPost]
         public IActionResult SaveFromClientReceipt(ReceiptViewModel model)
         {
@@ -987,6 +1001,8 @@ namespace SmartMoon.MVC.Controllers
             model.moneyDrawers = context.moneyDrawer.ToList();
             return View("AddFromClientReceipt", model);
         }
+
+        [Permission("إضافة إيصال للعميل")]
         [HttpGet]
         public IActionResult AddToClientReceipt()
         {
@@ -1001,7 +1017,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(viewModel);
         }
-        
+        [Permission("إضافة إيصال للعميل")]
         [HttpPost]
         public IActionResult SaveToClientReceipt(ReceiptViewModel model)
         {
@@ -1039,11 +1055,14 @@ namespace SmartMoon.MVC.Controllers
             model.moneyDrawers = context.moneyDrawer.ToList();
             return View("AddToClientReceipt", model);
         }
+
+        [Permission("عرض العملاء")]
         public IActionResult ViewClients()
         {
             var clients = context.clients.ToList();
             return View(clients);
         }
+        [Permission("كشف حساب العميل")]
         [HttpGet]
         public IActionResult AccountStatement(int clientId)
         {
@@ -1094,7 +1113,7 @@ namespace SmartMoon.MVC.Controllers
             return View("AccountStatement", viewModel); // Ensure that the view is named AccountStatement.cshtml
         }
 
-       
+        [Permission("كشف حساب العميل")]
         [HttpGet]
         public IActionResult FilteredAccountStatement(int clientId, DateTime startDate, DateTime endDate)
         {
@@ -1144,6 +1163,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View("AccountStatement", viewModel); // Reuse the same view for filtered results
         }
+        [Permission("حذف عميل")]
         [HttpGet]
         public IActionResult DeleteClient(int clientId)
         {
@@ -1156,6 +1176,7 @@ namespace SmartMoon.MVC.Controllers
             }
             return NotFound();
         }
+        [Permission("إضافة إيصال من المورد")]
         [HttpGet]
         public IActionResult AddFromSupplierReceipt()
         {
@@ -1170,6 +1191,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(viewModel);
         }
+
         [HttpGet]
         public IActionResult GetSupplierBalance(int supplierId)
         {
@@ -1189,6 +1211,7 @@ namespace SmartMoon.MVC.Controllers
 
             return Ok(suppliers);
         }
+        [Permission("إضافة إيصال من المورد")]
         [HttpPost]
         public IActionResult SaveFromSupplierReceipt(ReceiptViewModel model)
         {
@@ -1226,6 +1249,7 @@ namespace SmartMoon.MVC.Controllers
             model.moneyDrawers = context.moneyDrawer.ToList();
             return View("AddFromSupplierReceipt",model);
         }
+        [Permission("إضافة إيصال للمورد")]
         [HttpGet]
         public IActionResult AddToSupplierReceipt()
         {
@@ -1240,7 +1264,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(viewModel);
         }
-        
+        [Permission("إضافة إيصال للمورد")]
         [HttpPost]
         public IActionResult SaveToSupplierReceipt(ReceiptViewModel model)
         {
@@ -1279,12 +1303,14 @@ namespace SmartMoon.MVC.Controllers
             model.moneyDrawers = context.moneyDrawer.ToList();
             return View("AddToSupplierReceipt", model);
         }
+        [Permission("عرض الموردين")]
         [HttpGet]
         public IActionResult ViewSuppliers()
         {
             var suppliers = context.suppliers.ToList();
             return View(suppliers);
         }
+        [Permission("حذف مورد")]
         [HttpGet]
         public IActionResult DeleteSupplier(int supplierId)
         {
@@ -1297,6 +1323,7 @@ namespace SmartMoon.MVC.Controllers
             }
             return NotFound("!هذا المورد غير موجود");
         }
+        [Permission("كشف حساب المورد")]
         [HttpGet]
         public IActionResult SupplierAccountStatement(int supplierId)
         {
@@ -1350,7 +1377,7 @@ namespace SmartMoon.MVC.Controllers
             return View("SupplierAccountStatement", viewModel); // Ensure that the view is named AccountStatement.cshtml
         }
 
-        
+        [Permission("كشف حساب المورد")]
         [HttpGet]
         public IActionResult SupplierFilteredAccountStatement(int supplierId, DateTime startDate, DateTime endDate)
         {
@@ -1401,11 +1428,13 @@ namespace SmartMoon.MVC.Controllers
             return View("SupplierAccountStatement", viewModel); // Reuse the same view for filtered results
         }
 
+        [Permission("قائمة الأسعار")]
         [HttpGet]
         public IActionResult PriceList()
         {
             return View();
         }
+
 
         [HttpGet]
         public async Task<IActionResult> ClientsSearch(string query)
@@ -1426,13 +1455,14 @@ namespace SmartMoon.MVC.Controllers
                 .ToListAsync();
             return Ok(products);
         }
+        [Permission("عرض نقص الأصناف")]
         [HttpGet]
         public IActionResult ViewProductsShortcomings()
         {
             var products = context.products.Where(x => x.Quantity <= 0).ToList();
             return View(products);
         }
-
+        [Permission("أقساط متأخرة")]
         [HttpGet]
         public async Task<IActionResult> LateInstallments()
         {
@@ -1459,7 +1489,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(lateInstallments);
         }
-
+        [Permission("الموقف المالي")]
         [HttpGet]
         public IActionResult FinancialPosition()
         {
@@ -1487,6 +1517,7 @@ namespace SmartMoon.MVC.Controllers
             model.FinalPosition = (model.ActualTotalBalance + model.TotalForUs) - model.TotalOnUs;
             return View(model);
         }
+        [Permission("حركة الأصناف")]
         [HttpGet]
         public IActionResult ItemMovement()
         {
@@ -1596,7 +1627,7 @@ namespace SmartMoon.MVC.Controllers
             // Return the filtered data in JSON format
             return Json(result);
         }
-
+        [Permission("عرض المصروفات اليومية")]
         public IActionResult ViewDailyExpenses()
         {
             var items = context.expense.Select(x => x.Item).Distinct();
@@ -1626,7 +1657,7 @@ namespace SmartMoon.MVC.Controllers
 
             return Json(expenses);
         }
-
+        [Permission("عرض المبيعات اليومية")]
         [HttpGet]
         public IActionResult ViewDailySales()
         {
@@ -1671,7 +1702,7 @@ namespace SmartMoon.MVC.Controllers
 
             return Json(salesData);
         }
-
+        [Permission("عرض عمليات الخزنة")]
         [HttpGet]
         public IActionResult ViewDrawerOperations()
         {
@@ -1881,7 +1912,7 @@ namespace SmartMoon.MVC.Controllers
 
             return Json(allOperations);
         }
-
+        [Permission("عرض صافي الربح")]
         public IActionResult ViewNetProfit()
         {
             var drawers = context.moneyDrawer.Select(c => c.Name).ToList();
@@ -1958,6 +1989,7 @@ namespace SmartMoon.MVC.Controllers
             });
         }
 
+        [Permission("عرض الموظفين")]
         [HttpGet]
         public IActionResult ViewEmployees()
         {
@@ -1971,6 +2003,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
+        [Permission("إضافة موظف")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AddEmployee(EmployeeViewModel model)
@@ -2003,6 +2036,7 @@ namespace SmartMoon.MVC.Controllers
             }
             return RedirectToAction("ViewEmployees", "Admin");
         }
+        [Permission("حذف موظف")]
         public IActionResult DeleteEmployee(int id)
         {
             var emp = context.employees.FirstOrDefault(x=>x.Id== id);
@@ -2014,7 +2048,7 @@ namespace SmartMoon.MVC.Controllers
             context.SaveChanges();
             return RedirectToAction("ViewEmployees");
         }
-
+        [Permission("عرض السلف والحوافز والخصومات")]
         public IActionResult ViewAdvancesIncentivesAndDiscounts()
         {
             var model = new NetEmpSalaryViewModel
@@ -2071,6 +2105,7 @@ namespace SmartMoon.MVC.Controllers
             context.SaveChanges();
             return RedirectToAction("ViewAdvancesIncentivesAndDiscounts");
         }
+        [Permission("عرض السلف والحوافز والخصومات")]
         public IActionResult PayingSalaries()
         {
             // Get all employees
@@ -2137,7 +2172,7 @@ namespace SmartMoon.MVC.Controllers
 
             return View(viewModel);
         }
-
+        [Permission("عرض السلف والحوافز والخصومات")]
         [HttpPost]
         public IActionResult SaveTotalSalary(string SelectedMoneyDrawer, decimal TotalNetSalary)
         {

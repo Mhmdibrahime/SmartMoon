@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartMoon.MVC.Models.Data;
@@ -25,6 +26,7 @@ namespace SmartMoon.MVC.Controllers
             _roleManager = roleManager;
             _signInManager = signInManager;
         }
+        [Authorize(Roles ="مدير")]
         [HttpGet]
         public IActionResult AddUser()
         {
@@ -76,7 +78,7 @@ namespace SmartMoon.MVC.Controllers
             return View(model);
         }
 
-
+        [Authorize(Roles = "مدير")]
         [HttpPost]
         public async Task<IActionResult> AddUser(AddUserViewModel model)
         {
@@ -267,6 +269,11 @@ namespace SmartMoon.MVC.Controllers
         {
             return View();
         }
-
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Login", "Account");
+        }
     }
 }
