@@ -10,10 +10,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>شركه سمارت مون</title>
-    <link rel="stylesheet" href="~/css/style.css">
-    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
-    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/الاصناف.css" asp-append-version="true">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -30,13 +31,13 @@
 
         <!-- الصف الأول: تسجيل مخزن جديد -->
         <div class="row">
-            <form asp-action="AddNewInventory" asp-controller="Admin" method="post">
-            <div class="column flex-input-btn">
-                <label for="new-store">تسجيل مخزن جديد</label>
-                <div class="input-group">
-                    <input asp-for="Name" id="new-store" placeholder="أدخل المخزن الجديد">
-                    <button type="submit" class="save-store-btn">حفظ المخزن</button>
-                </div>
+            <form asp-action="AddNewInventory" asp-controller="Admin" method="post" id="addStoreForm">
+                <div class="column flex-input-btn">
+                    <label for="new-store">تسجيل مخزن جديد</label>
+                    <div class="input-group">
+                        <input asp-for="Name" id="new-store" placeholder="أدخل المخزن الجديد">
+                        <button type="submit" class="save-store-btn">حفظ المخزن</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -97,7 +98,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
-        // JavaScript code to populate the form with dynamic data
         $(document).ready(function () {
             // Load products when "from-store" changes
             $('#from-store').on('change', function () {
@@ -123,15 +123,33 @@
                     success: function (products) {
                         const tbody = $('#transfer-body');
                         tbody.empty();
+
+                        if (!Array.isArray(products) || products.length === 0) {
+                            tbody.append('<tr><td colspan="4">لا توجد منتجات متاحة.</td></tr>');
+                            return;
+                        }
+
                         products.forEach(product => {
                             tbody.append(`
-                                <tr>
-                                    <td>${product.name}</td>
-                                    <td>${product.inventory}</td>
-                                    <td>${product.quantity}</td>
-                                    <td><input type="number" class="transfer-qty" data-product-id="${product.id}" placeholder="ادخل الكميه"></td>
-                                </tr>
-                            `);
+                                        <tr>
+                                            <td>${product.name}</td>
+                                            <td>${product.inventory}</td>
+                                            <td>${product.quantity}</td>
+                                            <td><input type="number" class="transfer-qty" data-product-id="${product.id}" placeholder="ادخل الكميه"></td>
+                                        </tr>
+                                    `);
+                        });
+                    },
+                    error: function () {
+                        Swal.fire({
+                            text: 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى.',
+                            icon: 'error',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            toast: true,
+                            position: 'top-end',
+                            background: '#ffffff',
+                            iconColor: '#d9534f',
                         });
                     }
                 });
@@ -143,16 +161,41 @@
 
                 const fromInventoryId = $('#from-store').val();
                 const toInventoryId = $('#to-store').val();
-                if (!fromInventoryId || !toInventoryId) {
-                    alert("Please select both inventories.");
+
+                // Check if from and to inventories are the same
+                if (fromInventoryId === toInventoryId) {
+                    Swal.fire({
+                        text: 'لا يمكن تحويل المنتجات إلى نفس المخزن.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#f0ad4e',
+                    });
                     return;
                 }
 
-                // Set the from and to inventory IDs in hidden form fields
+                // Check if both from and to inventories are selected
+                if (!fromInventoryId || !toInventoryId) {
+                    Swal.fire({
+                        text: 'يرجى اختيار المخزن.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#f0ad4e',
+                    });
+                    return;
+                }
+
+                // Prepare transfers array and add each item to the form as hidden inputs
                 $('#fromInventoryId').val(fromInventoryId);
                 $('#toInventoryId').val(toInventoryId);
 
-                // Prepare transfers array and add each item to the form as hidden inputs
                 const transfers = [];
                 $('#transferItemsContainer').empty(); // Clear previous items
                 $('.transfer-qty').each(function (index) {
@@ -176,15 +219,41 @@
                 });
 
                 if ($('#transferItemsContainer').children().length === 0) {
-                    alert("Please enter quantities to transfer.");
+                    Swal.fire({
+                        text: 'يرجى إدخال الكميات المراد نقلها.',
+                        icon: 'info',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#5bc0de',
+                    });
                     return;
                 }
 
-                // Submit the form
                 $('#transferForm').submit();
             });
-        });
 
+            // Validate Add Store Form
+            $('#addStoreForm').submit(function (event) {
+                var storeName = $('#new-store').val().trim();
+
+                if (storeName === '') {
+                    event.preventDefault();
+                    Swal.fire({
+                        text: 'يرجى إدخال اسم المخزن.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#f0ad4e',
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>
