@@ -1,0 +1,158 @@
+﻿@model EmployeeViewModel
+@{
+    ViewData["Title"] = "ViewEmployees";
+    Layout = "_Dashboard";
+}
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الموظفين.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+   
+    <section class="employee-section">
+
+        <div class="separator">
+            <h2>قائمة الموظفين</h2>
+        </div>
+
+        <form asp-action="AddEmployee" asp-controller="admin" method="post">
+        <div class="row">
+            <div class="column flex-input-btn">
+                <label for="employee-name">اسم الموظف</label>
+                <div class="input-group">
+                    <input asp-for="Name" id="employee-name" placeholder="أدخل اسم الموظف">
+                </div>
+            </div>
+        </div>
+
+        <!-- الصف الثاني: تسجيل رقم التليفون، الوظيفة، والراتب والنسبة -->
+        <div class="row">
+            <div class="column">
+                <label for="employee-phone">رقم التليفون</label>
+                <input asp-for="PhoneNumber" id="employee-phone" placeholder="أدخل رقم التليفون">
+            </div>
+
+            <div class="column">
+                <label for="employee-role">الوظيفة</label>
+                <div class="custom-select">
+                    <input asp-for="Job" id="employee-role" placeholder="اختر الوظيفة" autocomplete="off">
+                    <div class="options-list" id="employee-role-options">
+                        <div class="option" data-value="مدير">مدير</div>
+                        <div class="option" data-value="سائق">سائق</div>
+                        <div class="option" data-value="مندوب">مندوب</div>
+                        <div class="option" data-value="محاسب">محاسب</div>
+                        <div class="option" data-value="أمين مخزن">أمين مخزن</div>
+                        <div class="option" data-value="مبيعات">مبيعات</div>
+                        <div class="option" data-value="صفحه">صفحه</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column">
+                <label for="employee-salary">الراتب</label>
+                <div class="input-group">
+                    <input asp-for="Salary" id="employee-salary" placeholder="أدخل الراتب">
+                </div>
+            </div>
+
+            <div class="column">
+                <label for="employee-commission">نسبة المبيعات</label>
+                <div class="input-group">
+                    <input asp-for="SalesRatio" id="employee-commission" placeholder="أدخل نسبة المبيعات (%)">
+                    <button type="submit"><i class='bx bx-plus'></i></button>
+                </div>
+            </div>
+        </div>
+        </form>
+
+        <!-- جدول الموظفين -->
+        <table class="employee-table">
+            <thead>
+                <tr>
+                    <th>اسم الموظف</th>
+                    <th>الوظيفة</th>
+                    <th>رقم التليفون</th>
+                    <th>الراتب</th>
+                    <th>تعديل</th>
+                    <th>حذف</th>
+                </tr>
+            </thead>
+            <tbody id="employee-body">
+                @foreach(var emp in Model.Employees)
+                {
+                    <tr>
+                        <td>@emp.Name</td>
+                        <td>@emp.Job</td>
+                        <td>@emp.PhoneNumber</td>
+                        <td>@emp.Salary جنيه و @emp.SalesRatio % من المبيعات</td>
+                        <td><i class="bx bx-edit edit-employee" data-index="${index}"></i></td>
+                        <td><a asp-action="DeleteEmployee" asp-controller="Admin" asp-route-id="@emp.Id"><i class="bx bx-trash delete-employee"></i></a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+
+        <!-- إجمالي الرواتب -->
+        <div class="total">
+            <p id="employee-total-text">إجمالي الرواتب: <span id="employee-total-amount-text">@Model.TotalSalaries</span> جنيه</p>
+        </div>
+
+        
+    </section>
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/الموظفين.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function (event) {
+                event.preventDefault();
+                const name = $('#employee-name').val().trim();
+                const phoneNumber = $('#employee-phone').val().trim();
+                const job = $('#employee-role').val().trim();
+                const salary = $('#employee-salary').val().trim();
+                const salesRatio = $('#employee-commission').val().trim();
+                if (!name || !phoneNumber || !job || !salary || !salesRatio) {
+                    Swal.fire({
+                        text: 'يرجى إدخال جميع البيانات المطلوبة قبل الإضافة إلى الجدول.',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                } else {
+                    this.submit();
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,104 @@
+﻿@model TransferProductsViewModels
+@{
+    ViewData["Title"] = "TransferBetweenInventories";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/style.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/الاصناف.css" asp-append-version="true">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    <section class="transfer-section">
+        <div class="separator">
+            <h2>تحويل بين المخازن</h2>
+        </div>
+
+        <!-- الصف الأول: تسجيل مخزن جديد -->
+        <div class="row">
+            <form asp-action="AddNewInventory" asp-controller="Admin" method="post" id="addStoreForm">
+                <div class="column flex-input-btn">
+                    <label for="new-store">تسجيل مخزن جديد</label>
+                    <div class="input-group">
+                        <input asp-for="Name" id="new-store" placeholder="أدخل المخزن الجديد">
+                        <button type="submit" class="save-store-btn">حفظ المخزن</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Inventory Selection and Search Form -->
+        <div class="transfer-controls">
+            <label for="from-store">اختر المخزن</label>
+            <select id="from-store">
+                <option value="">-- اختر المخزن --</option>
+                @foreach (var inventory in Model.inventories)
+                {
+                    <option value="@inventory.Id">@inventory.Name</option>
+                }
+            </select>
+
+            <label for="to-store">إلى المخزن</label>
+            <select id="to-store">
+                <option value="">-- اختر المخزن --</option>
+                @foreach (var inventory in Model.inventories)
+                {
+                    <option value="@inventory.Id">@inventory.Name</option>
+                }
+            </select>
+
+            <input type="text" id="search-item" placeholder="بحث باسم الصنف">
+        </div>
+
+        <!-- Traditional Form for Submission -->
+        <form id="transferForm" method="post" asp-action="SaveTransferBetweenInventories" asp-controller="Admin">
+            <!-- Hidden fields for fromInventoryId and toInventoryId -->
+            <input type="hidden" name="FromInventoryId" id="fromInventoryId">
+            <input type="hidden" name="ToInventoryId" id="toInventoryId">
+
+            <!-- Products Table -->
+            <table class="transfer-table">
+                <thead>
+                    <tr>
+                        <th>اسم الصنف</th>
+                        <th>المخزن</th>
+                        <th>الكمية المتاحة</th>
+                        <th>الكمية المراد نقلها</th>
+                    </tr>
+                </thead>
+                <tbody id="transfer-body">
+                    <!-- Product rows will be populated here dynamically by JavaScript -->
+                </tbody>
+            </table>
+
+            <!-- Container for dynamic transfer items -->
+            <div id="transferItemsContainer"></div>
+
+            <!-- Save Transfer Button -->
+            <button type="submit" class="save-transfer-btn">حفظ التحويل</button>
+        </form>
+    </section>
+
+    <!-- jQuery (required for the script) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script src="~/js/trnsinv.js">
+        
+    </script>
+</body>
+</html>

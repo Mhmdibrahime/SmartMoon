@@ -1,0 +1,161 @@
+﻿@model List<MoneyDrawer>
+@{
+    ViewData["Title"] = "ItemMovement";
+    Layout = "_Dashboard";
+}
+
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/حركه صنف.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+   
+
+    <section class="item-movement-report">
+        <div class="separator">
+            <h2>تقرير حركة صنف</h2>
+        </div>
+
+        <!-- الصف الأول: اختبار الصنف واختيار من وإلى -->
+        <div class="row">
+            <div class="column">
+                <label for="item">اختر الصنف:</label>
+                <input type="text" id="item" placeholder="ابحث عن الصنف" class="form-control">
+                <div id="item-options" class="dropdown-options"></div>
+            </div>
+            <div class="column">
+                <label for="start-date">من:</label>
+                <input type="date" id="start-date" class="form-control">
+            </div>
+            <div class="column">
+                <label for="end-date">إلى:</label>
+                <input type="date" id="end-date" class="form-control">
+            </div>
+        </div>
+
+        <!-- الصف الثاني: اسم العميل ونقطة البيع ونوع العملية -->
+        <div class="row">
+            
+            
+            <div class="column">
+                <label for="operation-type">نوع العملية</label>
+                <div class="input-group">
+                    <select id="operation-type">
+                        
+                        <option value="SalesBill">مبيعات</option>
+                        <option value="PurchaseReturnBill">مرتجع مبيعات</option>
+                        <option value="BuyBill">مشتريات</option>
+                        <option value="SalesReturnBill-return">مرتجع مشتريات</option>
+                       
+                    </select>
+                    <button class="view-btn" id="view-report-btn">عرض</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- جدول العمليات -->
+        <table class="operations-table">
+            <thead>
+                <tr>
+                    
+                    <th>تاريخ العملية</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    
+                    <th>المستخدم</th>
+                    <th>الكمية المتبقية</th>
+                </tr>
+            </thead>
+            <tbody id="operations-table-body">
+            </tbody>
+        </table>
+    </section>
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+
+            // 1. When the user types in the product search box
+            $('#item').on('input', function () {
+                var query = $(this).val();
+                if (query.length >= 2) {
+                    $.get('/Admin/SearchProducts', { query: query }, function (data) {
+                        $('#item-options').empty();
+                        data.forEach(function (product) {
+                            $('#item-options').append(`<div class="option" data-value="${product.name}">${product.name}</div>`);
+                        });
+                    });
+                }
+            });
+
+           
+
+            // 3. When an option from product search is clicked
+            $(document).on('click', '#item-options .option', function () {
+                $('#item').val($(this).data('value'));
+                $('#item-options').empty();
+            });
+
+           
+
+            $('#view-report-btn').on('click', function () {
+                var productName = $('#item').val();
+                
+              
+                var startDate = $('#start-date').val();
+                var endDate = $('#end-date').val();
+                var operationType = $('#operation-type').val(); // Get selected operation type
+
+                $.get('/Admin/GetFilteredReport', {
+                    productName: productName,
+                   
+                   
+                    startDate: startDate ? new Date(startDate) : null,
+                    endDate: endDate ? new Date(endDate) : null,
+                    operationType: operationType // Pass the operationType to the action
+                }, function (data) {
+                    // Clear previous results
+                    $('#operations-table-body').empty();
+
+                    // Populate the table with the filtered data
+                    data.forEach(function (item) {
+                        $('#operations-table-body').append(`
+                        <tr>
+                            <td>${item.date}</td>
+                            <td>${item.quantity}</td>
+                            <td>${item.price}</td>
+                           
+                            <td>${item.name}</td>
+                            <td>${item.remainingQuantity}</td>
+                        </tr>
+                    `);
+                    });
+                });
+            });
+
+        });
+    </script>
+
+   
+    
+</body>
+</html>

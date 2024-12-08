@@ -1,0 +1,87 @@
+﻿@model LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/تسجيل الدخول.css">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:600&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a81368914c.js"></script>
+</head>
+<body>
+    <img class="wave" src="~/img/wave.png" alt="موجة">
+    <div class="container">
+        <div class="img">
+            <img src="~/img/hero-img.png" alt="خلفية">
+        </div>
+        <div class="login-content">
+            <form asp-action="AddNewAdmin" asp-controller="Account" method="post" class="form-horizontal">
+                <img src="~/img/IconMan.png" alt="أفاتار">
+                <h2 class="title">سجل الدخول كمدير جديد</h2>
+
+                <div class="input-div one">
+                    <div class="i">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="div">
+                        <h5>اسم المستخدم</h5>
+                        <input asp-for="UserName" class="input" id="username" type="text" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="input-div pass">
+                    <div class="i">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="div">
+                        <h5>كلمة المرور</h5>
+                        <input asp-for="Password" class="input" id="password" type="password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <input type="submit" class="btn" value="تسجيل" />
+            </form>
+        </div>
+    </div>
+    <script src="~/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelector("form").addEventListener("submit", function (e) {
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+
+            if (!username || !password) {
+                e.preventDefault();
+                Swal.fire({
+                    text: 'يرجى إدخال اسم المستخدم وكلمة المرور.',
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    toast: true,
+                    position: 'top-end',
+                    background: '#ffffff',
+                    iconColor: '#f0ad4e',
+                    customClass: {
+                        popup: 'small-toast',
+                        title: 'small-toast-title',
+                        content: 'small-toast-content'
+                    }
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>
+
+
+
+

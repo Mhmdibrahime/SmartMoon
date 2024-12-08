@@ -1,0 +1,105 @@
+﻿@model HomePageViewModel
+@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Dashboard";
+
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+
+    <div class="card-container">
+        <div class="card" id="card1">
+            <a asp-action="CreateSalesBill" asp-controller="Admin">
+            <i class='bx bx-cart-add icon'></i>
+            <div class="card-title">عمليه بيع جديدة</div>
+            </a>
+        </div>
+        <div class="card" id="card4">
+            <a asp-action="CreateReturnSalesBill" asp-controller="Admin">
+            <i class='bx bx-undo icon'></i>
+            <div class="card-title">فاتورة مرتجع مبيعات</div>
+            </a>
+        </div>
+        <div class="card" id="card2">
+            <a asp-action="CreatePurchaseBill" asp-controller="Admin">
+                <i class='bx bx-cart icon'></i>
+                <div class="card-title">إضافة مشتريات</div>
+            </a>
+        </div>
+        <div class="card" id="card3">
+            <a asp-action="CreatePurchaseReturnBill" asp-controller="Admin">
+            <i class='bx bx-receipt icon'></i>
+            <div class="card-title">فاتورة مرتجع مشتريات</div>
+            </a>
+        </div>
+        <div class="card" id="card5">
+            <a asp-action="AddClient" asp-controller="Admin">
+                <i class='bx bx-user icon'></i>
+                <div class="card-title">عميل جديد</div>
+            </a>
+        </div>
+        <div class="card" id="card6">
+            <a asp-action="AddSupplier" asp-controller="Admin">
+                <i class='bx bx-store icon'></i>
+                <div class="card-title">إضافة مورد</div>
+            </a>
+        </div>
+        <div class="card" id="card7">
+            <a asp-action="ViewProducts" asp-controller="Admin">
+                <i class='bx bx-box icon'></i>
+                <div class="card-title">عرض الأصناف</div>
+            </a>
+        </div>
+        <div class="card" id="card9">
+            <a asp-action="AddExpense" asp-controller="Admin">
+            <i class='bx bx-briefcase icon'></i>
+                <div class="card-title">سجـل مصــــروف</div>
+            </a>
+        </div>
+        <div class="card" id="card10">
+            <a asp-action="TransferBetweenInventories" asp-controller="Admin">
+            <i class='bx bx-transfer icon'></i>
+                <div class="card-title">تحويل بين المخازن</div>
+            </a>
+        </div>
+        <div class="card" id="card8">
+            <a asp-action="TransferBetweenMoneyDrawers" asp-controller="Admin">
+            <i class='bx bx-sync icon'></i>
+             <div class="card-title">تحويل بين الخزن</div>
+            </a>
+        </div>
+
+        <div class="separator">
+            <h2>تفاصيل الأرصدة الماليه</h2>
+        </div>
+
+        <div class="unique-cards-section">
+            @foreach (var drawer in Model.moneyDrawers)
+            {
+                <a asp-action="ViewDrawerOperations" asp-controller="Admin">
+                <div class="card uniqe">
+                   <i class='bx bx-dollar-circle icon'></i>
+                    <div class="card-title">@drawer.Name</div>
+                    <div class="card-value">@drawer.CurrentBalance جنيه</div>
+                </div>
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+</body>
+</html>

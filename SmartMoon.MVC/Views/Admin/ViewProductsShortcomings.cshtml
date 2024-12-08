@@ -1,0 +1,73 @@
+﻿@model List<Product>
+@{
+    ViewData["Title"] = "ViewProductsShortcomings";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    
+
+    <section class="item-display-section">
+        <div class="separator">
+            <h2>نواقص الأصناف</h2>
+        </div>
+
+       
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>الكمية</th>
+                    
+                    <th>حذف</th>
+                </tr>
+            </thead>
+            <tbody id="items-table-body">
+                @foreach(var product in Model)
+                {
+                    <tr>
+                        <td>@product.Name</td>
+                        <td>@product.Quantity</td>
+
+                        <td><a asp-action="DeleteProduct" asp-controller="Admin"><i class='bx bxs-trash delete-btn'></i></a></td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+
+        <!-- التحكم في تقسيم الصفحات -->
+        <div class="pagination">
+            <button id="prev-page" disabled>السابق</button>
+            <span>صفحة <span id="current-page">1</span> من <span id="total-pages">1</span></span>
+            <button id="next-page">التالي</button>
+        </div>
+    </section>
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/نواقص الاصناف.js"></script>
+</body>
+</html>
+
+

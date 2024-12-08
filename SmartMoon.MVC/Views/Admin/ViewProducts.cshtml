@@ -1,0 +1,534 @@
+﻿@model ViewProductsWithSuppliersViewModel
+@{
+    ViewData["Title"] = "ViewProducts";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .icon {
+            font-size: 27px;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .icon:hover {
+                transform: scale(1.1);
+            }
+
+        .save-btn {
+            color: #28a745;
+        }
+
+        .cancel-btn {
+            color: #dc3545;
+        }
+
+        .save-btn:hover {
+            color: #218838;
+        }
+
+        .cancel-btn:hover {
+            color: #c82333;
+        }
+
+        #column-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+            #column-selection input[type="checkbox"] {
+                margin-right: 5px;
+                accent-color: #004f83;
+            }
+
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+
+
+    <section class="item-display-section">
+        <div class="separator">
+            <h2>عرض الأصناف</h2>
+        </div>
+        <!-- حقل إضافة الصنف وزر الإضافة -->
+        <div class="row">
+            <div class="column">
+                <form asp-action="AddProduct" asp-controller="Admin">
+                    <label>اسم الصنف</label>
+                    <div class="input-group">
+                        <input asp-for="ProductName" id="product-name" placeholder="ادخل اسم الصنف">
+                        <button type="submit" id="submit-btn">إضافة صنف</button>
+
+                    </div>
+                    <span class="error" id="error-supplier-name"></span>
+                </form>
+            </div>
+        </div>
+
+        <!-- البحث والفلاتر -->
+        <div class="row">
+            <div class="column">
+                <label for="search-item">بحث عن صنف</label>
+                <input type="text" id="search-item" class="filter-input" placeholder="ابحث عن صنف">
+            </div>
+            <div class="column">
+                <label for="filter-supplier">المورد</label>
+                <select id="filter-supplier" class="filter-select">
+                    <option value="">جميع الموردين</option>
+                    @foreach (var supplier in Model.Suppliers)
+                    {
+                        <option value="@supplier.Name">@supplier.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="column">
+                <label for="filter-store">المخزن</label>
+                <div class="input-group">
+                    <select id="filter-store" class="filter-select">
+                        <option value="">جميع المخازن</option>
+                        @foreach (var inventory in Model.inventories)
+                        {
+                            <option value="@inventory.Id" name="filter-store">@inventory.Name</option>
+                        }
+                    </select>
+                    
+                </div>
+            </div>
+            <div class="column">
+                <label>رصيد المخزن:</label>
+                <span id="inventory-balance">جنيه</span>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="column">
+                <div id="column-selection" style="margin-bottom: 10px;">
+                    <label><input type="checkbox" value="1" checked> الصنف</label>
+                    <label><input type="checkbox" value="2" checked> الكمية</label>
+                    <label><input type="checkbox" value="3" checked> سعر الشراء</label>
+                    <label><input type="checkbox" value="4" checked> سعر البيع</label>
+                    <label><input type="checkbox" value="5" checked> المورد</label>
+                    <label><input type="checkbox" value="6" checked> المخزن</label>
+                </div>
+            </div>
+            <div class="column">
+                <button id="print-btn" class="btn btn-primary">طباعة</button>
+            </div>
+        </div>
+
+
+
+
+        <!-- Product Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>الكمية</th>
+                    <th>سعر الشراء</th>
+                    <th>سعر البيع</th>
+                    <th>المورد</th>
+                    <th>المخزن</th>
+                    <th>تعديل</th>
+                </tr>
+            </thead>
+            <tbody id="items-table-body">
+                @foreach (var item in Model.Products)
+                {
+                    <tr data-id="@item.ProductId">
+                        <td>
+                            <span class="view-mode">@item.ProductName</span>
+                            <input type="text" class="edit-mode form-control d-none" value="@item.ProductName">
+                        </td>
+                        <td>
+                            <span class="view-mode">@item.Quantity</span>
+                        </td>
+                        <td>
+                            <span class="view-mode">@item.PurchasePrice</span>
+                        </td>
+                        <td>
+                            <span class="view-mode">@item.Price</span>
+                            <input type="number" class="edit-mode form-control d-none" value="@item.Price">
+                        </td>
+                        <td>@item.SupplierName</td>
+                        <td>@item.InventoryName</td>
+                        <td hidden>@item.InventoryId</td>
+                        <td>
+                            <i class="bx bx-edit icon btn btn-primary edit-btn d-none"></i>
+                            <div class="action-buttons d-none">
+                                <i class="bx bx-save icon btn btn-success save-btn"></i>
+                                <i class="bx bx-x-circle icon btn btn-secondary cancel-btn"></i>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+
+
+
+
+
+        <!-- التحكم في تقسيم الصفحات -->
+        <div class="pagination">
+            <button id="prev-page" disabled>السابق</button>
+            <span>صفحة <span id="current-page">1</span> من <span id="total-pages">1</span></span>
+            <button id="next-page">التالي</button>
+        </div>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Function to fetch inventory balance
+            function updateInventoryBalance(inventoryId) {
+                $('#inventory-balance').text('...'); // Show loading indicator
+
+                $.ajax({
+                    url: '/Admin/GetInventoryBalance',
+                    type: 'GET',
+                    data: { inventoryId: inventoryId || '' }, // Send inventoryId or empty for all
+                    success: function (data) {
+                        $('#inventory-balance').text(data.balance.toFixed(2)); // Display the balance
+                    },
+                    error: function () {
+                        Swal.fire({
+                            text: 'حدث خطأ أثناء جلب رصيد المخزن',
+                            icon: 'error',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            toast: true,
+                            position: 'top-end'
+                        });
+                    }
+                });
+            }
+
+            // Event listener for inventory selection change
+            $('#filter-store').change(function () {
+                const inventoryId = $(this).find(':selected').val(); // Get the selected inventory ID
+                updateInventoryBalance(inventoryId); // Fetch and display balance
+            });
+
+            // Initialize with "جميع المخازن" (all inventories)
+            updateInventoryBalance(''); // Fetch total balance for all inventories
+        });
+    </script>
+
+
+    <script>
+        $(document).ready(function () {
+            $('#submit-btn').click(function (event) {
+                const productName = $('#product-name').val().trim();
+                if (productName === '') {
+                    event.preventDefault();
+                    Swal.fire({
+                        text: 'يرجى إدخال اسم الصنف.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        text: 'تم إضافة الصنف بنجاح!',
+                        icon: 'success',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#5bc0de',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('.edit-mode').hide();
+            $('.action-buttons').hide();
+
+            $('#items-table-body').on('click', function (event) {
+                const target = $(event.target);
+
+                if (target.hasClass('edit-btn')) {
+                    const row = target.closest('tr');
+
+                    row.find('.view-mode').hide();
+                    row.find('.edit-mode').show();
+
+                    row.find('.edit-btn').hide();
+                    row.find('.action-buttons').show();
+                }
+                if (target.hasClass('save-btn')) {
+                    const row = target.closest('tr');
+                    const productId = row.data('id');
+                    const updatedName = row.find('input[type="text"]').val();
+                    const updatedPrice = row.find('input[type="number"]').val();
+
+                    $.ajax({
+                        url: '/Admin/UpdateProduct',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            ProductId: productId,
+                            ProductName: updatedName,
+                            Price: updatedPrice
+                        }),
+                        headers: {
+                            "X-CSRF-TOKEN": $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function (response) {
+                            if (response.ok) {
+                                row.find('.view-mode').first().text(updatedName);
+                                row.find('.view-mode').eq(1).text(updatedPrice);
+
+                                row.find('.view-mode').show();
+                                row.find('.edit-mode').hide();
+
+                                row.find('.edit-btn').show();
+                                row.find('.action-buttons').hide();
+                            } else {
+                                Swal.fire({
+                                    text: 'تم تعديل الصنف بنجاح!',
+                                    icon: 'success',
+                                    showConfirmButton: false,
+                                    timer: 2000,
+                                    toast: true,
+                                    position: 'top-end',
+                                    background: '#ffffff',
+                                    iconColor: '#5bc0de',
+                                    customClass: {
+                                        popup: 'small-toast',
+                                        title: 'small-toast-title',
+                                        content: 'small-toast-content'
+                                    }
+                                });
+                            }
+                        }
+                    });
+                }
+
+                if (target.hasClass('cancel-btn')) {
+                    const row = target.closest('tr');
+
+                    row.find('.view-mode').show();
+                    row.find('.edit-mode').hide();
+                    row.find('.edit-btn').show();
+                    row.find('.action-buttons').hide();
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('.error').hide();
+            let itemsPerPage = 22;
+            let currentPage = 1
+            let allItems = $('#items-table-body tr').toArray();
+            let filteredItems = allItems;
+            let editingRow = null;
+
+            function updateTable() {
+                $('#items-table-body').empty();
+                let start = (currentPage - 1) * itemsPerPage;
+                let end = start + itemsPerPage;
+                filteredItems.slice(start, end).forEach(item => {
+                    $('#items-table-body').append(item);
+                });
+
+                let totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+                $('#current-page').text(currentPage);
+                $('#total-pages').text(totalPages);
+
+                $('#prev-page').prop('disabled', currentPage === 1);
+                $('#next-page').prop('disabled', currentPage === totalPages || totalPages === 0);
+            }
+
+            function filterTable() {
+                let searchValue = $('#search-item').val().toLowerCase();
+                let supplierFilter = $('#filter-supplier').val();
+                let storeFilter = $('#filter-store').val();
+
+                filteredItems = allItems.filter(function (item) {
+                    let itemName = $(item).find('td').eq(0).text().toLowerCase();
+                    let supplierName = $(item).find('td').eq(4).text();
+                    let storeName = $(item).find('td').eq(6).text();
+
+                    let matchesSearch = itemName.includes(searchValue);
+                    let matchesSupplier = supplierFilter === "" || supplierName === supplierFilter;
+                    let matchesStore = storeFilter === "" || storeName === storeFilter;
+
+                    return matchesSearch && matchesSupplier && matchesStore;
+                });
+
+                currentPage = 1;
+                updateTable();
+            }
+
+
+            $('#search-item').on('input', filterTable);
+            $('#filter-supplier, #filter-store').on('change', filterTable);
+
+            $('#prev-page').click(function () {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTable();
+                }
+            });
+
+            $('#next-page').click(function () {
+                let totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updateTable();
+                }
+            });
+
+            $('#add-item-btn').click(function () {
+                let itemName = $('#item-name').val().trim();
+
+                if (itemName.length < 10) {
+                    $('.error').show();
+                    $('#error-supplier-name').text('اسم الصنف يجب أن يحتوي على 10 أحرف على الأقل.');
+                } else {
+                    $('.error').hide();
+                    $('#error-supplier-name').text('');
+                    showCustomAlert('تم إضافة الصنف بنجاح.');
+
+                    if (editingRow) {
+                        $(editingRow).find('td').eq(0).text(itemName);
+                        editingRow = null;
+                        $('#add-item-btn').text('إضافة صنف');
+                    }
+
+                    $('#item-name').val('');
+                }
+            });
+
+            $('#items-table-body').on('click', '.edit-btn', function () {
+                let row = $(this).closest('tr');
+                let itemName = row.find('td').eq(0).text();
+
+                $('#item-name').val(itemName);
+                $('#add-item-btn').text('تعديل صنف');
+                editingRow = row;
+            });
+
+            function showCustomAlert(message) {
+                Swal.fire({
+                    text: message,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    toast: true,
+                    position: 'top-end'
+                });
+            }
+
+            updateTable();
+        });
+    </script>
+    <script>
+        document.getElementById("print-btn").addEventListener("click", function () {
+            var table = document.querySelector(".items-table");
+            var selectedColumns = Array.from(
+                document.querySelectorAll("#column-selection input:checked")
+            ).map(input => parseInt(input.value));
+
+            var newTable = document.createElement("table");
+            newTable.classList.add("items-table");
+
+            // Create and populate the new table header
+            var newThead = document.createElement("thead");
+            var newHeaderRow = document.createElement("tr");
+            var originalHeaders = table.querySelectorAll("thead th");
+            selectedColumns.forEach(function (colIndex) {
+                var th = document.createElement("th");
+                th.textContent = originalHeaders[colIndex - 1].textContent;
+                newHeaderRow.appendChild(th);
+            });
+            newThead.appendChild(newHeaderRow);
+            newTable.appendChild(newThead);
+
+            // Create and populate the new table body
+            var newTbody = document.createElement("tbody");
+            var rows = table.querySelectorAll("tbody tr");
+            rows.forEach(function (row) {
+                var newRow = document.createElement("tr");
+                selectedColumns.forEach(function (colIndex) {
+                    var originalCell = row.querySelector(`td:nth-child(${colIndex})`);
+                    var td = document.createElement("td");
+                    td.textContent = originalCell.textContent;
+                    newRow.appendChild(td);
+                });
+                newTbody.appendChild(newRow);
+            });
+            newTable.appendChild(newTbody);
+
+            // Open a new window and write the formatted table into it
+            var printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>طباعة الجرد</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write('table { width: 100%; border-collapse: collapse; direction: rtl; }');
+            printWindow.document.write('th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }');
+            printWindow.document.write('th { background-color: #f2f2f2; font-weight: bold; }');
+            printWindow.document.write('body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }');
+            printWindow.document.write('h1 { text-align: center; }');
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h1>طباعة الجرد</h1>');
+            printWindow.document.write(newTable.outerHTML);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        });
+    </script>
+
+
+</body>
+</html>

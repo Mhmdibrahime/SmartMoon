@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملخص الفاتورة</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Add your CSS file here -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="scripts.js"></script> <!-- Include your JavaScript file -->
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <h1>ملخص الفاتورة</h1>
+            <div class="details">
+                <p>رقم الفاتورة: <span id="invoice-number">001</span></p>
+                <p>التاريخ: <span id="invoice-date"></span></p>
+                <p>اسم العميل: <span id="client-name"></span></p>
+            </div>
+        </div>
+        <table id="invoice-summary">
+            <thead>
+                <tr>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody id="invoice-body">
+                <!-- Invoice items will be appended here dynamically -->
+            </tbody>
+        </table>
+        <div class="totals">
+            <p>المبلغ الإجمالي: <span id="total-amount-text">0.00</span> جنيه</p>
+            <p>المبلغ المدفوع: <span id="cash-amount-text">0.00</span> جنيه</p>
+            <p>المبلغ المتبقي: <span id="remaining-amount-text">0.00</span> جنيه</p>
+        </div>
+        <button class="print-btn">طباعة الفاتورة</button>
+        <button class="save-btn">حفظ الفاتورة</button>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // This is just an example. You will need to populate these values based on your logic.
+            const items = [
+                { name: "منتج 1", quantity: 2, price: 50 },
+                { name: "منتج 2", quantity: 1, price: 30 },
+                { name: "منتج 3", quantity: 5, price: 20 },
+            ];
+
+            let totalAmount = 0;
+
+            items.forEach(item => {
+                const itemTotal = item.quantity * item.price;
+                totalAmount += itemTotal;
+                $('#invoice-body').append(`
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${item.quantity}</td>
+                                <td>${item.price.toFixed(2)}</td>
+                                <td>${itemTotal.toFixed(2)}</td>
+                            </tr>
+                        `);
+            });
+
+            $('#total-amount-text').text(totalAmount.toFixed(2));
+            $('#cash-amount-text').text('0.00'); // Adjust according to your logic
+            $('#remaining-amount-text').text(totalAmount.toFixed(2)); // Assuming not paid yet
+
+            const currentDate = new Date().toLocaleDateString('ar-EG');
+            $('#invoice-date').text(currentDate);
+            $('#client-name').text('عميل غير محدد'); // You can change this as needed
+
+            // Print functionality
+            $('.print-btn').on('click', function () {
+                window.print();
+            });
+
+            // Save functionality (placeholder)
+            $('.save-btn').on('click', function () {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'حفظ الفاتورة',
+                    text: 'حفظ الفاتورة غير مفعل بعد.',
+                });
+            });
+        });
+    </script>
+</body>
+</html>

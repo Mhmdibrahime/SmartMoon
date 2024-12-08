@@ -1,0 +1,120 @@
+﻿@model NewClientViewModel
+@{
+    ViewData["Title"] = "AddClient";
+    
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/عميل جديد.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    
+    <section class="add-client-section">
+        <div class="separator">
+            <h2>إضافة عميل جديد</h2>
+        </div>
+
+
+        <!-- نموذج إضافة عميل -->
+        <form class="add-client-form" asp-action="AddClient" asp-controller="Admin" method="post">
+            <div class="row">
+                <label for="client-name">اسم العميل</label>
+                <input asp-for="Name" id="client-name" placeholder="ادخل اسم العميل">
+                <span asp-validation-for="Name" class="error" id="error-client-name"></span>
+            </div>
+
+            <div class="row">
+                <label for="client-address">عنوان العميل</label>
+                <input asp-for="Address" id="client-address" placeholder="ادخل عنوان العميل">
+                <span asp-validation-for="Address" class="error" id="error-client-address"></span>
+            </div>
+
+            <div class="row">
+                <label for="client-national-id">الرقم القومي</label>
+                <input asp-for="NationalID" id="client-national-id" placeholder="ادخل الرقم القومي">
+                <span asp-validation-for="NationalID" class="error" id="error-client-national-id"></span>
+            </div>
+
+            <div class="row">
+                <label for="client-phone">رقم الهاتف</label>
+                <input asp-for="PhoneNumber" id="client-phone" placeholder="ادخل رقم الهاتف">
+                <span asp-validation-for="PhoneNumber" class="error" id="error-client-phone"></span>
+            </div>
+
+            <div class="row">
+                <label for="client-mobile">رقم الموبايل</label>
+                <input asp-for="MobileNumber" id="client-mobile" placeholder="ادخل رقم الموبايل">
+                <span asp-validation-for="MobileNumber" class="error" id="error-client-mobile"></span>
+            </div>
+            
+            <!-- أزرار الحفظ -->
+            <div class="buttons">
+                <button type="submit" class="save-client-btn">حفظ</button>
+            </div>
+        </form>
+       @*  <form  asp-action="AddClient" asp-controller="Admin" method="post">
+            <div class="row">
+                <label >اسم العميل</label>
+                <input asp-for="Name"  placeholder="ادخل اسم العميل">
+                <span asp-validation-for="Name" ></span>
+            </div>
+
+            <div class="row">
+                <label >عنوان العميل</label>
+                <input asp-for="Address"  placeholder="ادخل عنوان العميل">
+                <span asp-validation-for="Address" ></span>
+            </div>
+
+            <div class="row">
+                <label >الرقم القومي</label>
+                <input asp-for="NationalID"  placeholder="ادخل الرقم القومي">
+                <span asp-validation-for="NationalID" ></span>
+            </div>
+
+            <div class="row">
+                <label >رقم الهاتف</label>
+                <input asp-for="PhoneNumber"  placeholder="ادخل رقم الهاتف">
+                <span asp-validation-for="PhoneNumber" ></span>
+            </div>
+
+            <div class="row">
+                <label >رقم الموبايل</label>
+                <input asp-for="MobileNumber"  placeholder="ادخل رقم الموبايل">
+                <span asp-validation-for="MobileNumber"></span>
+            </div>
+            <div>
+                <button type="submit" value="Add">Add</button>
+            </div>
+            <!-- أزرار الحفظ -->
+            
+        </form> *@
+    </section>
+
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/عميل .js"></script>
+</body>
+</html>
+

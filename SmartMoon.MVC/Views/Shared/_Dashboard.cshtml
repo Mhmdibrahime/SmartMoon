@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <!-- Loading Screen -->
+    @* <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+ *@
+    <div class="sidebar">
+        <div class="logo_details">
+            <i class="bx bx-moon icon"></i>
+            <div class="logo_name">سمارت مون</div>
+            <i class="bx bx-menu" id="btn"></i>
+        </div>
+        <ul class="nav-list">
+            <li>
+                <i class="bx bx-search"></i>
+                <input type="text" placeholder="بحث...">
+                <span class="tooltip">بحث</span>
+            </li>
+            <li>
+            <li>
+                <a asp-action="Index" asp-controller="Home">
+                    <i class="bx bx-home"></i>
+                    <span class="link_name">الرئيسيه</span>
+                </a>
+                <span class="tooltip">الرئيسيه</span>
+            </li>
+
+            <!-- العملاء مع قائمة فرعية -->
+            <li>
+                <a href="#">
+                    <i class="bx bx-user"></i>
+                    <span class="link_name">العملاء</span>
+                    <i class="bx bx-chevron-down dropdown-icon"></i>
+                </a>
+                <ul class="sub-menu">
+                    <li><a asp-action="AddFromClientReceipt" asp-controller="Admin"><i class="bx bx-receipt"></i>ايصال استلام</a></li>
+                    <li><a asp-action="AddToClientReceipt" asp-controller="Admin"><i class="bx bx-receipt"></i>ايصال صرف</a></li>
+                    <li><a asp-action="ViewClients" asp-controller="Admin"><i class="bx bx-user"></i>عرض العملاء</a></li>
+                </ul>
+                <span class="tooltip">العملاء</span>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="bx bx-package"></i>
+                    <span class="link_name">الموردين</span>
+                    <i class="bx bx-chevron-down dropdown-icon"></i>
+                </a>
+                <ul class="sub-menu">
+                    <li><a asp-action="AddFromSupplierReceipt" asp-controller="Admin"><i class="bx bx-receipt"></i>ايصال استلام</a></li>
+                    <li><a asp-action="AddToSupplierReceipt" asp-controller="Admin"><i class="bx bx-receipt"></i>ايصال صرف</a></li>
+                    <li><a asp-action="ViewSuppliers" asp-controller="Admin"><i class="bx bx-group"></i>عرض الموردين</a></li>
+                </ul>
+                <span class="tooltip">الموردين</span>
+            </li>
+
+
+            <!-- عروض الاسعار -->
+            <li>
+                <a asp-action="PriceList" asp-controller="Admin">
+                    <i class="bx bx-tag"></i>
+                    <span class="link_name">عروض الاسعار</span>
+                </a>
+                <span class="tooltip">عروض الاسعار</span>
+            </li>
+
+            <!-- الموظفين والرواتب مع قائمة فرعية -->
+            <li>
+                <a href="#">
+                    <i class="bx bx-building"></i>
+                    <span class="link_name">الموظفين والرواتب</span>
+                    <i class="bx bx-chevron-down dropdown-icon"></i>
+                </a>
+                <ul class="sub-menu">
+                    <li><a asp-action="ViewEmployees" asp-controller="Admin"><i class="bx bx-group"></i>قائمة الموظفين</a></li>
+                    <li><a asp-action="PayingSalaries" asp-controller="Admin"><i class="bx bx-money"></i>صرف مرتبات</a></li>
+                    <li><a asp-action="ViewAdvancesIncentivesAndDiscounts" asp-controller="Admin"><i class="bx bx-credit-card"></i>سلفه - حافز - خصم</a></li>
+                </ul>
+                <span class="tooltip">الموظفين والرواتب</span>
+            </li>
+
+            <!-- التقارير مع قائمة فرعية -->
+            <li>
+                <a href="#">
+                    <i class="bx bx-line-chart"></i>
+                    <span class="link_name">التقارير</span>
+                    <i class="bx bx-chevron-down dropdown-icon"></i>
+                </a>
+                <ul class="sub-menu">
+                    <li><a asp-action="FinancialPosition" asp-controller="Admin"><i class="bx bx-bar-chart-alt"></i>الموقف المالي</a></li>
+                    <li><a asp-action="ItemMovement" asp-controller="Admin"><i class="bx bx-layer"></i>حركة صنف</a></li>
+                    <li><a asp-action="ViewDailyExpenses" asp-controller="Admin"><i class="bx bx-money"></i>مصروفات يومية</a></li>
+                    <li><a asp-action="ViewDailySales" asp-controller="admin"><i class="bx bx-cart"></i>مبيعات يومية</a></li>
+                    <li><a asp-action="ViewDrawerOperations" asp-controller="Admin"><i class="bx bx-wallet"></i>عمليات درج اليوم</a></li>
+                    <li><a asp-action="ViewNetProfit" asp-controller="Admin"><i class="bx bx-trending-up"></i>صافى الربح خلال مدة زمنية</a></li>
+
+                </ul>
+                <span class="tooltip">التقارير</span>
+            </li>
+
+            <!-- الإعدادات -->
+            <li>
+                <a asp-action="AddUser" asp-controller="account">
+                    <i class="bx bx-cog"></i>
+                    <span class="link_name">الإعدادات</span>
+                </a>
+                <span class="tooltip">الإعدادات</span>
+            </li>
+
+            <!-- التنبيهات -->
+            <li>
+                <a href="#">
+                    <i class="bx bx-bell"></i>
+                    <span class="link_name">التنبيهات</span>
+                    <i class="bx bx-chevron-down dropdown-icon"></i>
+                </a>
+                <ul class="sub-menu">
+                    <li><a asp-action="ViewProductsShortcomings" asp-controller="Admin"><i class="bx bx-error-alt"></i>نواقص الأصناف</a></li>
+                    <li><a asp-action="LateInstallments" asp-controller="Admin"><i class="bx bx-time-five"></i>الأقساط المتأخرة</a></li>
+                </ul>
+                <span class="tooltip">التنبيهات</span>
+            </li>
+
+
+            <li class="profile">
+                <div class="profile_details">
+                    <i class="bx bx-user"></i>
+                    <div class="profile_content">
+                        <div class="name">@User.Identity.Name</div>
+                        
+                    </div>
+                </div>
+                <a asp-action="Logout" asp-controller="Account" id="log_out"><i class="bx bx-log-out"></i></a>
+            </li>
+        </ul>
+    </div>
+
+
+    @RenderBody()
+    
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/script.js"></script>
+    @await RenderSectionAsync("scripts", required: false)
+</body>
+</html>

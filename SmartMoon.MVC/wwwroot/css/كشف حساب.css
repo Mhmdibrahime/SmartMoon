@@ -1,0 +1,106 @@
+.account-statement {
+    padding: 30px;
+    margin: 0 auto;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.account-statement .account-table, 
+.account-statement .operations-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    background-color: var(--color-white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.account-statement th, 
+.account-statement td {
+    padding: 12px;
+    border: 1px solid var(--color-light);
+    text-align: center;
+    transition: 0.3s;
+}
+
+.account-statement th {
+    background-color: var(--color-default);
+    color: var(--color-white);
+}
+
+.account-statement td:hover {
+    background-color: var(--color-light);
+}
+
+.account-statement .operations-table tfoot {
+    background-color: var(--color-second);
+    color: var(--color-white); 
+    font-weight: bold;
+}
+
+.account-statement .operations-table tfoot td {
+    padding: 15px;
+    border-top: 2px solid var(--color-default);
+    text-align: center;
+    font-size: 16px;
+}
+
+.account-statement .operations-table tfoot td:hover {
+    background-color: var(--color-default);
+    color: var(--color-white);
+    cursor: pointer; 
+}
+
+@media (max-width: 768px) {
+    .account-statement {
+        padding: 15px;
+    }
+
+    .account-statement .row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .account-statement input,
+    .account-statement button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .account-statement th, 
+    .account-statement td {
+        font-size: 12px;
+        padding: 8px;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .account-statement {
+        padding: 10px;
+    }
+
+    .account-statement input,
+    .account-statement button {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .account-statement th, 
+    .account-statement td {
+        font-size: 10px;
+        padding: 6px;
+    }
+
+    .account-statement .row {
+        gap: 10px;
+    }
+}

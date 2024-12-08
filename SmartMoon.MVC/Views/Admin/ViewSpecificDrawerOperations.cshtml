@@ -1,0 +1,120 @@
+﻿
+@{
+    ViewData["Title"] = "ViewDrawerOperations";
+    Layout = "_Dashboard";
+}
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/عمليات الدرج.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+
+
+    <section class="drawer-operations-report">
+        <div class="separator">
+            <h2>تقرير عمليات الدرج</h2>
+        </div>
+
+       
+
+        <!-- جدول العمليات -->
+        <table class="operations-table">
+            <thead>
+                <tr>
+                    <th>الوقت</th>
+                    <th>تاريخ العملية</th>
+                    <th>الإيراد</th>
+                    <th>المصروف</th>
+                    <th>البيان</th>
+                    <th>المستخدم</th>
+                </tr>
+            </thead>
+            <tbody id="operations-table-body">
+                <!-- يتم إدخال البيانات هنا ديناميكيًا -->
+            </tbody>
+        </table>
+    </section>
+
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            
+            $('#loading-screen').show();
+
+            
+            const startDate = $('#start-date').val();
+            const endDate = $('#end-date').val();
+            const moneyDrawer = @Model;
+
+            $.ajax({
+                url: '/Admin/Filtered',
+                type: 'GET',
+                data: {
+                    startDate: startDate,
+                    endDate: endDate,
+                    moneyDrawer: moneyDrawer
+                },
+                success: function (data) {
+                    
+                    $('#loading-screen').hide();
+
+                    $('#operations-table-body').empty();
+
+                    
+                    $.each(data, function (index, operation) {
+                        var row = `<tr>
+                                          <td>${operation.time}</td>
+                                          <td>${operation.date}</td>
+                                          <td>${operation.revenue}</td>
+                                          <td>${operation.expense}</td>
+                                          <td>${operation.description}</td>
+                                          <td>${operation.user}</td>
+                                       </tr>`;
+                        $('#operations-table-body').append(row);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error: ' + error);
+                    $('#loading-screen').hide();
+                    Swal.fire({
+                        text: 'حدث خطأ أثناء جلب البيانات',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

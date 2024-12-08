@@ -1,0 +1,173 @@
+﻿@model AccountStatementViewModel
+
+@{
+    ViewData["Title"] = "SupplierAccountStatement";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/كشف حساب.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+
+
+    <section class="account-statement">
+        <div class="separator">
+            <h2>كشف حساب</h2>
+        </div>
+
+        <!-- Display Client Name and Balance -->
+        <div class="client-info">
+            <p><strong>المورد:</strong> @Model.Name</p>
+            <p><strong>الرصيد الحالي:</strong> @Model.Balance.ToString("N2")</p>
+        </div>
+
+        <!-- Date Range Selection -->
+        <div class="row">
+            <div class="column">
+                <label for="start-date">من</label>
+                <input type="date" id="start-date" name="startDate">
+            </div>
+            <div class="column">
+                <label for="end-date">إلى</label>
+                <div class="input-group">
+                    <input type="date" id="end-date" name="endDate">
+                    <button class="view-btn" onclick="filterByDate()">عرض</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Receipts Table -->
+        <div class="separator">
+            <h3>الإيصالات</h3>
+        </div>
+        <table class="account-table">
+            <thead>
+                <tr>
+                    <th>رقم الإيصال</th>
+                    <th>التاريخ</th>
+                    <th>المبلغ المدفوع</th>
+                    <th>نوع الإيصال</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var receipt in Model.Receipts)
+                {
+                    <tr>
+                        <td>@receipt.Id</td>
+                        <td>@receipt.Date.ToString("yyyy-MM-dd")</td>
+                        <td>@receipt.AmountPaid.ToString("N2")</td>
+                        <td>@receipt.Type</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Sales Bills Table -->
+        <div class="separator">
+            <h3>فواتير المبيعات</h3>
+        </div>
+        <table class="operations-table">
+            <thead>
+                <tr>
+
+                    <th>التاريخ</th>
+                    <th>اسم المنتج</th>
+                    <th>الكمية</th>
+                    <th>سعر الشراء</th>
+                    <th>السعر الإجمالي</th>
+                    <th>طريقة الدفع</th>
+                    <th>نقطة البيع</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var bill in Model.PurchaseBills)
+                {
+                    <tr>
+
+                        <td>@bill.Date.ToString("yyyy-MM-dd")</td>
+                        <td>@bill.ProductName</td>
+                        <td>@bill.Quantity</td>
+                        <td>@bill.PurchasePrice.ToString("N2")</td>
+                        <td>@bill.TotalPrice.ToString("N2")</td>
+                        <td>@bill.PaymentMethod</td>
+                        <td>@bill.SalesPoint</td>
+                        
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3">الإجمالي</td>
+                    <td>@Model.TotalAmount.ToString("N2")</td>
+                    <td>المجموع المدفوع</td>
+                    <td>@Model.TotalPaid.ToString("N2")0</td>
+                    <td>المتبقي</td>
+                    <td>@Model.TotalRemaining.ToString("N2")</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        @*  <!-- Summary of Totals -->
+        <div class="totals">
+        <p><strong>إجمالي الفواتير:</strong> @Model.TotalAmount.ToString("N2")</p>
+        <p><strong>إجمالي المدفوع:</strong> @Model.TotalPaid.ToString("N2")</p>
+        <p><strong>المتبقي:</strong> @Model.TotalRemaining.ToString("N2")</p>
+        </div> *@
+
+        <!-- Script to handle date filtering -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            function filterByDate() {
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                const supplierId = @Model.Id;
+
+                if (startDate && endDate) {
+                    const url = `@Url.Action("SupplierFilteredAccountStatement", "Admin")?clientId=${supplierId}&startDate=${startDate}&endDate=${endDate}`;
+                    window.location.href = url;
+                } else {
+                    Swal.fire({
+                        text: 'يرجى اختيار التاريخين لعرض النتائج',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                }
+            }
+        </script>
+    </section>
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/صنف.js"></script>
+</body>
+</html>
+

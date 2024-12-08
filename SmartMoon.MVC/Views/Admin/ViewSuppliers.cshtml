@@ -1,0 +1,108 @@
+﻿@model List<Supplier>
+
+@{
+    ViewData["Title"] = "ViewSuppliers";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+
+
+    <section class="customer-display-section">
+        <!-- العنوان -->
+        <div class="separator">
+            <h2>عرض الموردين</h2>
+        </div>
+
+        <!-- البحث والفلاتر -->
+        <div class="row">
+            <div class="column">
+                <label for="search-customer">بحث عن مورد</label>
+                <input type="text" id="search-customer" placeholder="ابحث عن مورد">
+            </div>
+            <div class="column">
+                <label for="filter-balance">تصنيف العملاء</label>
+                <select id="filter-balance">
+                    <option value="">جميع الموردين</option>
+                    <option value="credit">له فلوس</option>
+                    <option value="debt">عليه فلوس</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- جدول العملاء -->
+        <table class="customers-table">
+            <thead>
+                <tr>
+                    <th>اسم المورد</th>
+                    <th>رقم المندوب الاول</th>
+                    <th>رقم المندوب الثاني</th>
+                    <th>له مبلغ</th>
+                    <th>عليه مبلغ</th>
+                    <th>كشف حساب</th>
+                    
+                    <th>حذف</th>
+                </tr>
+            </thead>
+            <tbody id="customers-table-body">
+                @foreach (var supplier in Model)
+                {
+                    <tr>
+                        <td>@supplier.Name</td>
+                        <td>@supplier.FirstRepresentativePhoneNumber</td>
+                        <td>@supplier.SecondRepresentativePhoneNumber</td>
+                        @if (supplier.Balance >= 0)
+                        {
+                            <td>@Math.Abs(supplier.Balance)</td>
+                            <td>0.00</td>
+                        }
+                        else
+                        {
+                            <td>0.00</td>
+                            <td>@Math.Abs(supplier.Balance)</td>
+                        }
+                        <td><a asp-action="SupplierAccountStatement" asp-controller="Admin" asp-route-supplierId="@supplier.Id"><i class='bx bx-show-alt show-btn'></i></a></td>
+
+                        <td><a asp-action="DeleteSupplier" asp-controller="Admin" asp-route-supplierId="@supplier.Id"><i class='bx bxs-trash delete-btn'></a></td>
+                    </tr>
+                }
+
+
+            </tbody>
+        </table>
+
+        <!-- التحكم في تقسيم الصفحات -->
+        <div class="pagination">
+            <button id="prev-page" disabled>السابق</button>
+            <span>صفحة <span id="current-page">1</span> من <span id="total-pages">1</span></span>
+            <button id="next-page">التالي</button>
+        </div>
+    </section>
+
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/عرض عميل.js"></script>
+</body>
+</html>
+

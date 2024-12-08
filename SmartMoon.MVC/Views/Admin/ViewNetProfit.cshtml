@@ -1,0 +1,156 @@
+﻿@model List<string> 
+@{
+    ViewData["Title"] = "ViewNetProfit";
+    Layout = "_Dashboard";
+}
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/عمليات الدرج.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    <section class="drawer-operations-report">
+        <div class="separator">
+            <h2>تقرير صافي الربح خلال فتره زمنيه</h2>
+        </div>
+
+        <!-- Date and Sales Point Selection -->
+        <div class="row">
+            <div class="column">
+                <label for="start-date">من</label>
+                <input type="date" id="start-date" required>
+            </div>
+            <div class="column">
+                <label for="end-date">إلى</label>
+                <input type="date" id="end-date" required>
+            </div>
+            <div class="column">
+                <label for="sales-point">نقطة البيع</label>
+                <div class="input-group">
+                    <select id="sales-point">
+                        <option value="all">الكل</option>
+                       @foreach(var drawer in Model)
+                        {
+                            <option value="@drawer">@drawer</option>
+                        }
+                    </select>
+                    <button class="view-btn" id="view-report-btn">عرض</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations Table -->
+        <table class="operations-table">
+            <thead>
+                <tr>
+                    <th>الوقت</th>
+                    <th>تاريخ العملية</th>
+                    <th>مجمل المبيعات</th>
+                    <th>مجمل المشتريات</th>
+                    <th>مصروفات</th>
+                    <th>صافي الربح</th>
+                </tr>
+            </thead>
+            <tbody id="operations-table-body">
+                <!-- Results will be inserted here -->
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script >
+                $(document).ready(function () {
+            $('#view-report-btn').on('click', function () {
+
+                const startDate = $('#start-date').val();
+                const endDate = $('#end-date').val();
+                const salesPoint = $('#sales-point').val();
+
+
+                if (!startDate || !endDate) {
+                    Swal.fire({
+                        text: 'يرجى اختيار تاريخ.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    return;
+                }
+
+
+                $.ajax({
+                    url: '/Admin/GetNetProfitReport',
+                    type: 'GET',
+                    data: {
+                        startDate: startDate,
+                        endDate: endDate,
+                        moneyDrawer: salesPoint
+                    },
+                    success: function (data) {
+
+                        $('#operations-table-body').empty();
+
+
+                        const rowHtml = `
+                  <tr>
+                    <td>${new Date().toLocaleTimeString()}</td>
+                    <td>${new Date().toLocaleDateString()}</td>
+                    <td>${data.totalRevenue.toFixed(2)}</td>
+                    <td>${data.totalPurchases.toFixed(2)}</td>
+                    <td>${data.totalExpenses.toFixed(2)}</td>
+                    <td>${data.netProfit.toFixed(2)}</td>
+                  </tr>
+                `;
+                        $('#operations-table-body').append(rowHtml);
+                    },
+                    error: function () {
+                        Swal.fire({
+                            text: 'حدث خطأ أثناء جلب البيانات',
+                            icon: 'warning',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            toast: true,
+                            position: 'top-end',
+                            background: '#ffffff',
+                            iconColor: '#d9534f',
+                            customClass: {
+                                popup: 'small-toast',
+                                title: 'small-toast-title',
+                                content: 'small-toast-content'
+                            }
+                        });
+                    }
+                });
+            });
+        });
+        
+    </script>
+</body>
+</html>
+
+

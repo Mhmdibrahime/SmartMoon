@@ -1,0 +1,98 @@
+﻿@model List<LateInstallmentsViewModel>
+@{
+    ViewData["Title"] = "LateInstallments";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link href='https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    
+
+    <section class="customer-display-section">
+        <!-- العنوان -->
+        <div class="separator">
+            <h2>الأقساط المتأخرة</h2>
+        </div>
+
+        <!-- البحث والفلاتر -->
+        <div class="row">
+            <div class="column">
+                <label for="search-customer">بحث عن عميل</label>
+                <input type="text" id="search-customer" placeholder="ابحث عن عميل">
+            </div>
+            <div class="column">
+                <label for="filter-balance">ترتيب العملاء</label>
+                <select id="filter-balance" class="filter-select">
+                    <option value="">جميع العملاء</option>
+                    <option value="credit">من الاحدث</option>
+                    <option value="debt">من الاقدم</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- جدول العملاء -->
+        <table class="customers-table">
+            <thead>
+                <tr>
+                    <th>اسم العميل</th>
+                    <th>رقم الهاتف</th>
+                    <th> المبلغ</th>
+                    <th>ايام التاخير</th>
+                    <th>كشف حساب</th>
+                </tr>
+            </thead>
+            <tbody id="customers-table-body">
+               @foreach(var client in Model)
+                {
+                    <tr>
+                        <td>@client.Name</td>
+                        <td>@client.PhoneNumber</td>
+                        @if(@client.Balance > 0){
+                        <td>@client.Balance له</td>
+                        }
+                        else {
+                        <td>@Math.Abs(client.Balance) عليه </td>
+                        }
+                        
+                        <td>@client.DaysLate</td>
+                        <td><a asp-action="AccountStatement" asp-controller="Admin" asp-route-clientId="@client.Id"><i class='bx bx-show-alt show-btn'></i></a></td>
+                    </tr>
+                }
+
+                <!-- إضافة المزيد من الصفوف حسب الحاجة -->
+            </tbody>
+        </table>
+
+        <!-- التحكم في تقسيم الصفحات -->
+        <div class="pagination">
+            <button id="prev-page" disabled>السابق</button>
+            <span>صفحة <span id="current-page">1</span> من <span id="total-pages">1</span></span>
+            <button id="next-page">التالي</button>
+        </div>
+    </section>
+
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/عرض عميل.js"></script>
+</body>
+</html>
+

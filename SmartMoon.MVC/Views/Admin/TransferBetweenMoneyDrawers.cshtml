@@ -1,0 +1,194 @@
+﻿@model TransferMoneyViewModel
+@{
+    ViewData["Title"] = "TransferBetweenMoneyDrawers";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الاصناف.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    <section class="transfer-section">
+        <div class="separator">
+            <h2>تحويل بين الخزن</h2>
+        </div>
+
+        <!-- إضافة خزنة جديدة -->
+        <form asp-action="AddNewMoneyDrawer" asp-controller="Admin" method="post" id="add-new-vault-form">
+            <div class="row">
+                <div class="column flex-input-btn">
+                    <label for="new-vault">تسجيل خزنة جديدة</label>
+                    <div class="input-group">
+                        <input asp-for="NewMoneyDarwer" id="new-vault" placeholder="أدخل اسم الخزنة الجديدة">
+                        <button type="submit" class="save-vault-btn">حفظ الخزنة</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- تحويل بين الخزن -->
+        <form asp-action="SaveTransfer" asp-controller="Admin" method="post" id="transfer-form">
+            <div class="row">
+                <div class="column">
+                    <label for="from-vault">الخزنة التي ستنقل منها</label>
+                    <select asp-for="FromId" id="from-vault">
+                        <option value="">اختر الخزنة</option>
+                        @foreach (var drawer in Model.moneyDrawers)
+                        {
+                            <option value="@drawer.Id">@drawer.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="column">
+                    <label for="to-vault">الخزنة التي ستنقل إليها</label>
+                    <select asp-for="ToId" id="to-vault">
+                        <option disabled>اختر الخزنة</option>
+                        @foreach (var drawer in Model.moneyDrawers)
+                        {
+                            <option value="@drawer.Id">@drawer.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="column flex-input-btn">
+                    <label for="new-vault">المبلغ المراد نقله</label>
+                    <div class="input-group">
+                        <input asp-for="TotalAmount" id="amount" placeholder="أدخل المبلغ">
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button type="submit" class="save-transfer-btn">حفظ التحويل</button>
+                </div>
+            </div>
+        </form>
+
+        <table class="transfer-table vault-table">
+            <thead>
+                <tr>
+                    <th>اسم الخزنة</th>
+                    <th>المبلغ الحالي</th>
+                </tr>
+            </thead>
+            <tbody id="vault-transfer-body">
+                @foreach (var drawer in Model.moneyDrawers)
+                {
+                    <tr>
+                        <td>@drawer.Name</td>
+                        <td>@drawer.CurrentBalance</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </section>
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // الفاليديشن لحفظ الخزنة الجديدة
+            $('#add-new-vault-form').submit(function (e) {
+                var vaultName = $('#new-vault').val().trim();
+                if (vaultName === "") {
+                    e.preventDefault();
+                    Swal.fire({
+                        text: 'يرجى إدخال اسم المخزن.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#f0ad4e',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                }
+            });
+
+            // الفاليديشن لحفظ التحويل
+            $('#transfer-form').submit(function (e) {
+                var fromVault = $('#from-vault').val();
+                var toVault = $('#to-vault').val();
+                var amount = $('#amount').val().trim();
+
+                // التحقق من نفس الخزنة
+                if (fromVault === toVault) {
+                    e.preventDefault();
+                    Swal.fire({
+                        text: 'لا يمكنك تحويل المبلغ إلى نفس الخزنة.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#f0ad4e',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                }
+                // التحقق من صحة الخزنتين والمبلغ
+                else if (!fromVault || !toVault) {
+                    e.preventDefault();
+                    Swal.fire({
+                        text: 'من فضلك اختر الخزنتين بشكل صحيح',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#f0ad4e',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                } else if (amount === "" || isNaN(amount) || Number(amount) <= 0) {
+                    e.preventDefault();
+                    Swal.fire({
+                        text: 'من فضلك أدخل مبلغ صحيح أكبر من صفر',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#f0ad4e',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

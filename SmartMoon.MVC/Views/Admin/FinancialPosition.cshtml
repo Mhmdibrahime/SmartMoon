@@ -1,0 +1,166 @@
+﻿@model FinancialPositionViewModel
+@{
+    ViewData["Title"] = "FinancialPosition";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/الموقف المالي.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    
+
+    <section class="financial-status">
+        <div class="separator">
+            <h2>الموقف المالي</h2>
+        </div>
+
+        <!-- Container for the first three tables -->
+        <div class="financial-container">
+            <!-- Part 1: لنا -->
+            <div class="financial-part">
+                <h3>لنا</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الحساب</th>
+                            <th>القيمة</th>
+                            <th>التفاصيل</th> <!-- عمود التفاصيل -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>علي العملاء</td>
+                            <td>@Model.OnClients جنيه</td>
+                            <td><a asp-action="ViewClients" asp-controller="Admin"><i class='bx bx-show'></i></a></td> <!-- رابط للتفاصيل -->
+                        </tr>
+                        <tr>
+                            <td>علي الموردين</td>
+                            <td>@Model.OnSuppliers جنيه</td>
+                            <td><a asp-action="ViewSuppliers" asp-controller="Admin"><i class='bx bx-show'></i></a></td> <!-- رابط للتفاصيل -->
+                        </tr>
+                        <tr class="total-row">
+                            <td>الإجمالي</td>
+                            <td colspan="2">@Model.TotalForUs</td> <!-- فارغ في الإجمالي -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Part 2: علينا -->
+            <div class="financial-part">
+                <h3>علينا</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الحساب</th>
+                            <th>القيمة</th>
+                            <th>التفاصيل</th> <!-- عمود التفاصيل -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>للعملاء</td>
+                            <td>@Model.ForClients</td>
+                            <td><a asp-action="ViewClients" asp-controller="Admin"><i class='bx bx-show'></i></a></td> <!-- رابط للتفاصيل -->
+                        </tr>
+                        <tr>
+                            <td>للموردين</td>
+                            <td>@Model.ForSuppliers</td>
+                            <td><a asp-action="ViewSuppliers" asp-controller="Admin"><i class='bx bx-show'></i></a></td> <!-- رابط للتفاصيل -->
+                        </tr>
+                        <tr class="total-row">
+                            <td>الإجمالي</td>
+                            <td colspan="2">@Model.TotalOnUs</td> <!-- فارغ في الإجمالي -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Part 3: الفعلي -->
+            <div class="financial-part">
+                <h3>الفعلي</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>البند</th>
+                            <th>القيمة</th>
+                            <th>التفاصيل</th> <!-- عمود التفاصيل -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ارصده المخزن</td>
+                            <td>@Model.InventoriesActualBalance جنيه</td>
+                            <td><a asp-action="ViewProducts" asp-controller="Admin"><i class='bx bx-show'></i></a></td> <!-- رابط للتفاصيل -->
+                        </tr>
+                        <tr>
+                            <td>ارصده الخزن</td>
+                            <td>@Model.DrawersActualBalance جنيه</td>
+                            <td><a asp-action="Index" asp-controller="Home"><i class='bx bx-show'></i></a></td> <!-- رابط للتفاصيل -->
+                        </tr>
+                        <tr class="total-row">
+                            <td>الإجمالي</td>
+                            <td colspan="2">@Model.ActualTotalBalance</td> <!-- فارغ في الإجمالي -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Part 4: الموقف المالي -->
+        <div class="financial-summary">
+            <h3>اجمالي الموقف المالي</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>البند</th>
+                        <th>القيمة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>اجمالي الفعلي</td>
+                        <td>@Model.ActualTotalBalance</td>
+                    </tr>
+                    <tr>
+                        <td>اجمالي لنا</td>
+                        <td>@Model.TotalForUs</td>
+                    </tr>
+                    <tr>
+                        <td>اجمالي علينا</td>
+                        <td>@Model.TotalOnUs</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td>الاجمالي</td>
+                        <td>@Model.FinalPosition</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/الموقف المالي.js"></script>
+</body>
+</html>
+
+

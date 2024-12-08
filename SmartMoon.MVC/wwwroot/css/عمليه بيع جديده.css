@@ -1,0 +1,340 @@
+.invoice-section {
+  padding: 30px;
+}
+
+.row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#item {
+  width: 500px;
+}
+
+#client {
+  width: 300px;
+}
+
+#seller, #store, #cash-register {
+  width: 280px;
+}
+
+input,
+select {
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid var(--color-light);
+  border-radius: 4px;
+  background-color: var(--color-white);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+input:focus,
+select:focus {
+  border-color: var(--color-default);
+  border-width: 2px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+  outline: none;
+}
+
+#discount,
+#discount-type {
+  padding: 8px;
+  font-size: 14px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+}
+
+button.add-btn,
+button.add-item-btn {
+  background-color: var(--color-default);
+  color: var(--color-white);
+  padding: 10px 15px;
+  font-size: 14px;
+}
+
+button.add-btn:hover,
+button.add-item-btn:hover {
+  background-color: var(--color-second);
+  transform: scale(1.01);
+}
+
+button.add-price-btn {
+  background-color: var(--color-default);
+  color: var(--color-white);
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+button.add-price-btn:hover {
+  background-color: var(--color-second);
+  transform: scale(1.01);
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 20px;
+  background-color: var(--color-white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.invoice-table th,
+.invoice-table td {
+  padding: 12px;
+  border: 1px solid var(--color-light);
+  text-align: center;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.invoice-table th {
+  background-color: var(--color-default);
+  color: var(--color-white);
+}
+
+.invoice-table td:hover {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+}
+
+.total,
+.remaining {
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.total #total-text,
+.remaining #remaining-text {
+  margin-bottom: 10px;
+}
+
+.buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+button.save-btn,
+button.print-btn {
+  background-color: var(--color-default);
+  color: var(--color-white);
+  padding: 12px 20px;
+  font-size: 16px;
+}
+
+button.save-btn:hover,
+button.print-btn:hover {
+  background-color: var(--color-second);
+  transform: scale(1.01);
+}
+
+
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column;
+  }
+
+  .column {
+    width: 100%;
+  }
+
+  .invoice-table th,
+  .invoice-table td {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .total,
+  .remaining {
+    font-size: 14px;
+  }
+
+  button.save-btn,
+  button.print-btn {
+    width: 100%;
+  }
+
+  #item {
+    width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .row {
+    gap: 5px;
+  }
+
+  .column {
+    flex: 1 1 100%;
+  }
+
+  #item,
+  #client,
+  #seller,
+  #store,
+  #cash-register {
+    width: 100%;
+  }
+
+  .invoice-table {
+    font-size: 12px;
+  }
+
+  input,
+  select {
+    padding: 6px;
+    font-size: 12px; 
+  }
+
+  button {
+    padding: 6px 10px;
+    font-size: 12px; 
+  }
+
+  .invoice-table th,
+  .invoice-table td {
+    font-size: 10px;
+    padding: 6px; 
+  }
+
+  .total,
+  .remaining {
+    font-size: 12px;
+  }
+
+  .invoice-section {
+    padding: 10px;
+  }
+
+  .row {
+    display: block;
+  }
+
+  .column {
+    width: 100%
+  }
+
+  .invoice-table {
+    font-size: 12px;
+  }
+}
+span{
+  color: var(--color-default);
+}
+
+.bx-plus{
+  font-size: 18px;
+}
+.edit-btn, .delete-btn ,.show-btn{
+  font-size: 22px;
+  color: var(--color-default);
+  transition: 0.3s;
+  cursor: pointer; 
+}
+.delete-btn{
+  color: #F44336;
+}
+
+.edit-btn:hover,.delete-btn:hover , .show-btn:hover {
+  transform: scale(1.1); 
+}
+
+.custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid var(--color-light);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: var(--color-white);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.custom-select input:focus {
+  border-color: var(--color-default);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.options-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-light);
+  border-radius: 4px;
+  display: none;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 1;
+  scrollbar-width: none;
+}
+
+.options-list::-webkit-scrollbar {
+  display: none;
+}
+
+.option {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+}
+
+.option:hover {
+  background-color: var(--color-light);
+}
+
+.option.selected {
+  background-color: var(--color-default);
+  color: var(--color-white);
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 0;
+  transition: color var(--transition-speed), transform var(--transition-speed);
+}
+
+label:hover {
+  color: var(--color-default);
+  transform: scale(1.02);
+}
+
+input:focus + label,
+select:focus + label {
+  color: var(--color-default);
+}
+
+@media (max-width: 768px) {
+  label {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  label {
+    font-size: 12px;
+  }
+}

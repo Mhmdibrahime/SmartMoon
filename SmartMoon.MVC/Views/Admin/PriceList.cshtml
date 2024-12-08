@@ -1,0 +1,233 @@
+﻿@{
+    ViewData["Title"] = "PriceList";
+    Layout = "_Dashboard";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Style for suggestions container */
+        .suggestions {
+            position: absolute;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: #f0f4f8; /* Light background color */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 10;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style for each suggestion item */
+        .suggestion {
+            padding: 10px;
+            color: #333;
+            background-color: #e3f2fd; /* Light blue background for suggestions */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            /* Hover effect on suggestion items */
+            .suggestion:hover {
+                background-color: #bbdefb; /* Darker blue on hover */
+            }
+
+        /* Customize the text field to have a clear contrast with suggestions */
+        .custom-select input[type="text"] {
+            position: relative;
+            z-index: 1; /* Ensure input appears above suggestions container */
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    <section class="invoice-section">
+        <div class="separator">
+            <h2>عروض اسعار</h2>
+        </div>
+
+        <!-- Client Selection -->
+        <div class="row">
+            <div class="column">
+                <label for="client">اختيار العميل</label>
+                <div class="custom-select">
+                    <input type="text" id="client" placeholder="اختر العميل" autocomplete="off">
+                    <div id="client-suggestions" class="suggestions"></div>
+                    <button class="add-btn" asp-action="AddClient" asp-controller="Admin">إضافة عميل</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Selection and Details -->
+        <div class="row">
+            <div class="column">
+                <label for="item">اختيار الصنف</label>
+                <div class="custom-select">
+                    <input type="text" id="item" placeholder="اختر الصنف" autocomplete="off">
+                    <div id="product-suggestions" class="suggestions"></div>
+                    <button class="add-btn" asp-action="ViewProducts" asp-controller="Admin">إضافة صنف</button>
+                </div>
+            </div>
+
+            <div class="column">
+                <label for="quantity">الكمية</label>
+                <input type="number" id="quantity" placeholder="ادخل الكمية">
+            </div>
+
+           
+        </div>
+
+        <!-- Price Field (Automatically Filled) and Add Button -->
+        <div class="row">
+            <div class="column">
+                <label for="price">السعر</label>
+                <input type="number" id="price" placeholder="السعر" readonly>
+            </div>
+            <div class="column">
+                <button class="add-item-btn" id="add-to-table">+</button>
+            </div>
+        </div>
+
+        <!-- Invoice Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                    
+                    
+                    <th>حذف</th>
+                </tr>
+            </thead>
+            <tbody id="invoice-body"></tbody>
+        </table>
+
+        <!-- Total Amount -->
+        <div class="total">
+            <p id="total-text">الإجمالي: <span id="total-amount-text">0</span> جنيه</p>
+        </div>
+
+        <!-- Print Button -->
+        <div class="buttons">
+            <button class="print-btn">طباعة الفاتورة</button>
+        </div>
+    </section>
+
+    <!-- Script Section for AJAX, Adding Items, and Calculations -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Fetch client suggestions
+        $('#client').on('input', function () {
+            let query = $(this).val();
+            $.ajax({
+                url: '/Admin/ClientsSearch',
+                method: 'GET',
+                data: { query: query },
+                success: function (data) {
+                    $('#client-suggestions').empty();
+                    data.forEach(client => {
+                        $('#client-suggestions').append(`<div class="suggestion" data-id="${client.id}">${client.name}</div>`);
+                    });
+                }
+            });
+        });
+
+        // Fetch product suggestions and get price when selected
+        $('#item').on('input', function () {
+            let query = $(this).val();
+            $.ajax({
+                url: '/Admin/SearchProducts',
+                method: 'GET',
+                data: { query: query },
+                success: function (data) {
+                    $('#product-suggestions').empty();
+                    data.forEach(product => {
+                        $('#product-suggestions').append(`<div class="suggestion" data-id="${product.id}" data-price="${product.price}">${product.name}</div>`);
+                    });
+                }
+            });
+        });
+        $(document).on('click', '.suggestion', function () {
+            var clientId = $(this).data('id');
+            var clientName = $(this).text();
+
+            $('#client').val(clientName);
+            $('#client-id').val(clientId);
+            $('#client-suggestions').empty();
+
+
+        });
+
+        // Set price on product selection
+        $('#product-suggestions').on('click', '.suggestion', function () {
+            let price = $(this).data('price');
+            $('#price').val(price); // Automatically fill in price
+            $('#item').val($(this).text());
+            $('#product-suggestions').empty();
+        });
+
+        // Add item to the table and update total
+        $('#add-to-table').click(function () {
+            let productName = $('#item').val();
+            let quantity = parseInt($('#quantity').val());
+            let price = parseFloat($('#price').val());
+           
+            if (productName && quantity > 0 && price > 0) {
+                let total = quantity * price;
+                $('#invoice-body').append(`
+                            <tr>
+                                <td>${productName}</td>
+                                <td>${quantity}</td>
+                                <td>${price}</td>
+                                <td>${total}</td>
+                                
+                                
+                                <td><button class="delete-btn">حذف</button></td>
+                            </tr>
+                        `);
+
+                // Update total amount
+                let currentTotal = parseFloat($('#total-amount-text').text()) || 0;
+                $('#total-amount-text').text(currentTotal + total);
+            } else {
+                Swal.fire({
+                    text: 'يرجى ملء جميع الحقول المطلوبة.',
+                    icon: 'warning',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    toast: true,
+                    position: 'top-end',
+                    background: '#ffffff',
+                    iconColor: '#d9534f',
+                    customClass: {
+                        popup: 'small-toast',
+                        title: 'small-toast-title',
+                        content: 'small-toast-content'
+                    }
+                });
+            }
+        });
+
+        // Print the invoice
+        $('.print-btn').click(function () {
+            window.print();
+        });
+    </script>
+</body>
+</html>

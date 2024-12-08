@@ -1,0 +1,239 @@
+﻿@model ExpenseViewModel
+@{
+    ViewData["Title"] = "AddExpense";
+    Layout = "_Dashboard";
+}
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+
+    <section class="expense-section">
+        <div class="separator">
+            <h2>سجل مصروف</h2>
+        </div>
+
+        <!-- الصف الأول: تسجيل البند -->
+        <div class="row">
+            <div class="column flex-input-btn">
+                <form asp-action="AddNewExpense" asp-controller="Admin" method="post" id="expense-form">
+                    <label for="expense-item">تسجيل البند</label>
+                    <div class="input-group">
+                        <input asp-for="Item" id="item-input" placeholder="أدخل البند">
+                        <button type="submit" id="save-btn" class="save-item-btn">حفظ البند</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <form method="post" asp-action="AddExpense" asp-controller="Admin">
+            @Html.AntiForgeryToken()
+
+    
+            <div class="row">
+                <div class="column">
+                    <label for="expense-category">البند</label>
+                    <input type="text" id="expense-category" placeholder="أدخل البند" class="form-control">
+                </div>
+                <div class="column">
+                    <label for="expense-amount">المبلغ</label>
+                    <input type="number" id="expense-amount" placeholder="أدخل المبلغ" class="form-control" min="0">
+                </div>
+                <div class="column">
+                    <label for="cash-register">الخزنة</label>
+                    <div class="input-group">
+                    <select id="cash-register" class="form-control">
+                        <option value="">اختر الخزنة</option>
+                        @foreach (var drawer in Model.moneyDrawers)
+                        {
+                            <option value="@drawer.Id">@drawer.Name</option>
+                        }
+                    </select>
+                    <button type="button" id="add-expense-btn">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Table -->
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>البند</th>
+                        <th>المبلغ</th>
+                        <th>الخزنة</th>
+                        <th>تعديل</th>
+                        <th>حذف</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-body"></tbody>
+            </table>
+
+            <!-- Total Amount -->
+            <div class="total">
+                <p>الإجمالي: <span id="expense-total-amount-text">0</span> جنيه</p>
+                <input type="hidden" name="TotalAmount" id="TotalAmount" value="0" />
+            </div>
+
+            <!-- Save Button -->
+            <button type="submit">حفظ السجل</button>
+        </form>
+    </section>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/سجل مصروف.js"></script>
+    <script>
+        $(document).ready(function () {
+            let totalAmount = 0;
+            let expenseIndex = 0;
+
+            // Function to add an expense
+            $("#add-expense-btn").click(function () {
+                const item = $("#expense-category").val();
+                const amount = parseFloat($("#expense-amount").val());
+                const cashRegisterId = $("#cash-register").val();
+                const cashRegisterName = $("#cash-register option:selected").text();
+
+                if (!item || isNaN(amount) || !cashRegisterId) {
+                    Swal.fire({
+                        text: 'يرجى ملء جميع الحقول المطلوبة.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    return;
+                }
+
+                const expenseTotal = amount;
+                totalAmount += expenseTotal;
+
+                // Append expense to the table
+                $("#expense-body").append(`
+                                <tr>
+                                    <td>${item}<input type="hidden" name="Expenses[${expenseIndex}].Item" value="${item}" /></td>
+                                    <td>${amount}<input type="hidden" name="Expenses[${expenseIndex}].Amount" value="${amount}" /></td>
+                                    <td>${cashRegisterName}<input type="hidden" name="Expenses[${expenseIndex}].MoneyDrawerId" value="${cashRegisterId}" /></td>
+                                    <td><i class='bx bxs-edit edit-btn'></i></td>
+                                    <td><i class='bx bxs-trash delete-btn'></i></td>
+                                </tr>
+                            `);
+
+                expenseIndex++;
+                updateTotalAmount();
+
+                // Clear input fields
+                $("#expense-category").val('');
+                $("#expense-amount").val('');
+                $("#cash-register").val('');
+            });
+
+            // Edit an expense
+            $("#expense-body").on("click", ".edit-btn", function () {
+                const row = $(this).closest("tr");
+                const item = row.find("td:nth-child(1)").text();
+                const amount = parseFloat(row.find("td:nth-child(2)").text());
+                const cashRegisterName = row.find("td:nth-child(3)").text();
+
+                // Set input fields with selected row's data
+                $("#expense-category").val(item);
+                $("#expense-amount").val(amount);
+
+                $("#cash-register option").filter(function () {
+                    return $(this).text() === cashRegisterName;
+                }).prop("selected", true);
+
+                // Remove row data from total
+                totalAmount -= amount;
+                row.remove();
+                updateTotalAmount();
+            });
+
+            // Delete an expense
+            $("#expense-body").on("click", ".delete-btn", function () {
+                const row = $(this).closest("tr");
+                const amount = parseFloat(row.find("td:nth-child(2)").text());
+
+                totalAmount -= amount;
+                row.remove();
+                updateTotalAmount();
+            });
+
+            function updateTotalAmount() {
+                $("#expense-total-amount-text").text(totalAmount.toFixed(2));
+                $("#TotalAmount").val(totalAmount.toFixed(2));
+            }
+            $("button[type='submit']").click(function (event) {
+                if ($("#expense-body tr").length === 0) {
+                    Swal.fire({
+                        text: 'لا يوجد بيانات في الجدول لحفظها.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    event.preventDefault(); 
+                }
+            });
+            $('#expense-form').on('submit', function (event) {
+                var itemInput = $('#item-input').val().trim();
+
+                if (itemInput === '') {
+                    event.preventDefault();
+                    Swal.fire({
+                        text: 'يرجى إدخال البند قبل الحفظ.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                }
+            });
+
+        });
+    </script>
+
+</body>
+</html>

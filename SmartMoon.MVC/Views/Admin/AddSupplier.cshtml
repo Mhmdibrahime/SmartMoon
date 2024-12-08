@@ -1,0 +1,131 @@
+﻿@model NewSupplierViewModel
+@{
+    ViewData["Title"] = "AddSupplier";
+}
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/عميل جديد.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+    <section class="add-supplier-section">
+        <div class="separator">
+            <h2>إضافة مورد جديد</h2>
+        </div>
+
+        <!-- نموذج إضافة مورد -->
+        <form class="add-supplier-form" asp-action="AddSupplier" asp-controller="Admin">
+            <div class="row">
+                <label for="supplier-name">اسم المورد</label>
+                <input asp-for="Name" id="supplier-name" placeholder="ادخل اسم المورد">
+                <span class="error" id="error-supplier-name"></span>
+            </div>
+
+            <div class="row">
+                <label for="supplier-address">عنوان المورد</label>
+                <input asp-for="Address" id="supplier-address" placeholder="ادخل عنوان المورد">
+                <span class="error" id="error-supplier-address"></span>
+            </div>
+
+            <div class="row">
+                <label for="first-representative-name">اسم المندوب الأول</label>
+                <input asp-for="FirstRepresentativeName" id="first-representative-name" placeholder="ادخل اسم المندوب الأول">
+                <span class="error" id="error-first-representative-name"></span>
+            </div>
+
+            <div class="row">
+                <label for="first-representative-phone">رقم تليفون المندوب الأول</label>
+                <input asp-for="FirstRepresentativePhoneNumber" id="first-representative-phone" placeholder="ادخل رقم تليفون المندوب الأول">
+                <span class="error" id="error-first-representative-phone"></span>
+            </div>
+
+            <div class="row">
+                <label for="second-representative-name">اسم المندوب الثاني</label>
+                <input asp-for="SecondRepresentativeName" id="second-representative-name" placeholder="ادخل اسم المندوب الثاني">
+                <span class="error" id="error-second-representative-name"></span>
+            </div>
+
+            <div class="row">
+                <label for="second-representative-phone">رقم تليفون المندوب الثاني</label>
+                <input asp-for="SecondRepresentativePhoneNumber" id="second-representative-phone" placeholder="ادخل رقم تليفون المندوب الثاني">
+                <span class="error" id="error-second-representative-phone"></span>
+            </div>
+
+            <!-- أزرار الحفظ -->
+            <div class="buttons">
+                <button type="submit" class="save-supplier-btn">حفظ</button>
+            </div>
+        </form>
+       @*  <form  asp-action="AddSupplier" asp-controller="Admin">
+            <div class="row">
+                <label >اسم المورد</label>
+                <input asp-for="Name" placeholder="ادخل اسم المورد">
+                <span ></span>
+            </div>
+
+            <div class="row">
+                <label >عنوان المورد</label>
+                <input asp-for="Address"  placeholder="ادخل عنوان المورد">
+                <span ></span>
+            </div>
+
+            <div class="row">
+                <label >اسم المندوب الأول</label>
+                <input asp-for="FirstRepresentativeName"  placeholder="ادخل اسم المندوب الأول">
+                <span ></span>
+            </div>
+
+            <div class="row">
+                <label >رقم تليفون المندوب الأول</label>
+                <input asp-for="FirstRepresentativePhoneNumber"  placeholder="ادخل رقم تليفون المندوب الأول">
+                <span ></span>
+            </div>
+
+            <div class="row">
+                <label >اسم المندوب الثاني</label>
+                <input asp-for="SecondRepresentativeName"  placeholder="ادخل اسم المندوب الثاني">
+                <span ></span>
+            </div>
+
+            <div class="row">
+                <label >رقم تليفون المندوب الثاني</label>
+                <input asp-for="SecondRepresentativePhoneNumber"  placeholder="ادخل رقم تليفون المندوب الثاني">
+                <span ></span>
+            </div>
+            <!-- أزرار الحفظ -->
+            <div >
+                <button type="submit">حفظ</button>
+            </div>
+        </form> *@
+    </section>
+
+
+
+    <!-- السكريبتات -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $('.error').hide();
+    </script>
+    @* <script src="~/js/مورد.js"></script> *@
+</body>
+</html>

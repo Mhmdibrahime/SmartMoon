@@ -1,0 +1,559 @@
+﻿@model PurchaseBillViewModel
+@{
+    ViewData["Title"] = "CreatePurchaseReturnBill";
+    Layout = "_Dashboard";
+}
+
+
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Style for suggestions container */
+        .suggestions {
+            position: absolute;
+            width: 100%;
+            max-height: 150px;
+            overflow-y: auto;
+            background-color: #f0f4f8; /* Light background color */
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 10;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style for each suggestion item */
+        .suggestion {
+            padding: 10px;
+            color: #333;
+            background-color: #e3f2fd; /* Light blue background for suggestions */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+            /* Hover effect on suggestion items */
+            .suggestion:hover {
+                background-color: #bbdefb; /* Darker blue on hover */
+            }
+
+        /* Customize the text field to have a clear contrast with suggestions */
+        .custom-select input[type="text"] {
+            position: relative;
+            z-index: 1; /* Ensure input appears above suggestions container */
+        }
+    </style>
+</head>
+<body>
+    <section class="invoice-section">
+        <div class="separator">
+            <h2>فاتوره مرتجع مشتريات</h2>
+        </div>
+
+        <form method="post" asp-action="CreatePurchaseReturnBill" asp-controller="Admin">
+            @Html.AntiForgeryToken()
+
+            <!-- Supplier Selection -->
+            <div class="row">
+                <div class="column">
+                    <label for="client">اختيار المورد</label>
+                    <div class="custom-select">
+                        <input type="text" id="client" placeholder="اختر المورد" autocomplete="off">
+                        <div id="client-suggestions" class="suggestions"></div>
+                        <input type="hidden" asp-for="SupplierId" id="client-id">
+                       
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Details -->
+            <!-- Product Details -->
+            <div class="row">
+                <div class="column">
+                    <label for="ProductSelection">اختيار الصنف</label>
+                    <div class="custom-select">
+                        <input type="text" id="ProductSelection" placeholder="اختر الصنف" autocomplete="off">
+                        <div id="product-suggestions" class="suggestions"></div>
+                        
+                    </div>
+                </div>
+                <div class="column">
+                    <label for="Quantity">الكمية</label>
+                    <input type="number" id="Quantity" placeholder="ادخل الكمية" class="form-control" min="1" />
+                </div>
+                <div class="column">
+                    <label for="InventorySelection">المخزن</label>
+                    <select id="InventorySelection" class="form-control">
+                        <option value="">اختر المخزن</option>
+                        @foreach (var inv in Model.Inventories)
+                        {
+                            <option value="@inv.Id">@inv.Name</option>
+                        }
+                    </select>
+                    <!-- Available quantity display -->
+                    <p id="available-quantity">الكمية المتوفرة: <span id="available-quantity-text">0</span></p>
+                </div>
+            </div>
+
+            <div class="row">
+               
+                <div class="column">
+                    <label for="PurchasePrice">سعر الشراء</label>
+                    <div class="input-group">
+                    <input type="number" id="PurchasePrice" placeholder="ادخل سعر الشراء" min="0" step="0.01" class="form-control" readonly />
+                    <button type="button" id="add-item-btn">+</button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Invoice Table -->
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>الصنف</th>
+                        <th>الكمية</th>
+                        <th>سعر الشراء</th>
+                        <th>الإجمالي</th>
+                        <th>المخزن</th>
+                        <th>تعديل</th>
+                        <th>حذف</th>
+                    </tr>
+                </thead>
+                <tbody id="invoice-body">
+                </tbody>
+            </table>
+
+            <!-- Total and Remaining Balance -->
+            <div class="total">
+                <p>الإجمالي: <span id="total-amount-text">0</span> جنيه</p>
+                <input type="hidden" name="TotalAmount" id="TotalAmount" value="0" />
+            </div>
+
+            <!-- Discount and Payment Information -->
+            <div class="row">
+                <div class="column">
+                    <label for="DiscountAmount">الخصم</label>
+                    <div class="input-group">
+                    <input asp-for="DiscountAmount" id="DiscountAmount" placeholder="ادخل قيمة الخصم" class="form-control" min="0" step="0.01" />
+                    <select asp-for="DiscountMethod" id="DiscountType" class="form-control" >
+                        <option value="Percentage">نسبة</option>
+                        <option value="Amount">مبلغ</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column">
+                        <label for="PaymentMethod">طريقة الدفع</label>
+                        <select asp-for="PaymentMethod" class="form-control">
+                            <option value="كاش">كاش</option>
+                            <option value="آجل">آجل</option>
+                        </select>
+                    </div>
+                    <div class="column">
+                        <label for="CashPaid">المبلغ نقداً</label>
+                        <input asp-for="CashPaid" id="CashPaid" class="form-control" placeholder="ادخل المبلغ" min="0" step="0.01" />
+                    </div>
+                    <div class="column">
+                        <label for="MoneyDrawerId">الخزنة</label>
+                        <select asp-for="MoneyDrawer" id="MoneyDrawerId" class="form-control">
+                            <option value="">اختر الخزنة</option>
+                            @foreach (var drawer in Model.MoneyDrawers)
+                            {
+                                <option value="@drawer.Name">@drawer.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="remaining">
+                <p>المتبقي: <span id="remaining-amount-text">0</span> جنيه</p>
+                <input type="hidden" name="RemainingBalance" id="RemainingBalance" value="0" />
+            </div>
+
+            <!-- Action Buttons -->
+            <button type="submit">حفظ الفاتورة</button>
+            <button type="button"class="print-btn1">طباعة الفاتورة</button>
+        </form>
+    </section>
+    <div class="invoice-container">
+        <div class="header">
+            <div class="details">
+                <p>رقم الفاتوره : <span></span></p>
+                <p>التاريخ : <span></span></p>
+                <p>العميل : <span></span></p>
+            </div>
+            <div class="logo">
+                <img src="~/img/smartmoon.jpg" alt="Logo">
+            </div>
+        </div>
+
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                    <th>المخزن</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <table class="totals">
+            <tr>
+                <th>الإجمالي</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>المدفوع</th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>الباقي</th>
+                <td></td>
+            </tr>
+        </table>
+
+        <div class="footer">
+            <p>
+                الارجاع و الاستبدال خلال 14 يوما حسب المادة 17 من القانون رقم 181 لسنة 2018 بشرط سلامة البضاعة.
+                ملف ضريبي 55753/613/293/223/552/06/06368
+            </p>
+            <p>تم تسليم البضاعة بحالة جيدة وخالية من العيوب و الضمان مسئولية الشركة المصنعة.</p>
+            <p>العنوان: كفر الشيخ - بلطيم</p>
+            <p>رقم الهاتف: 010997626230</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/print.js"></script>
+    <script>
+        $(document).ready(function () {
+            let totalAmount = 0;
+            let itemIndex = 0;
+
+            // Fetch client suggestions
+            $('#client').on('input', function () {
+                let query = $(this).val();
+                $.ajax({
+                    url: '/Admin/SearchSuppliers',
+                    method: 'GET',
+                    data: { term: query },
+                    success: function (data) {
+                        $('#client-suggestions').empty();
+                        data.forEach(supplier => {
+                            $('#client-suggestions').append(`<div class="suggestion" data-id="${supplier.id}">${supplier.name}</div>`);
+                        });
+                    }
+                });
+            });
+
+            $('#client-suggestions').on('click', '.suggestion', function () {
+                var clientId = $(this).data('id');
+                var clientName = $(this).text();
+                $('#client').val(clientName);
+                $('#client-id').val(clientId);
+                $('#client-suggestions').empty();
+            });
+
+            // Fetch product suggestions and get price when selected
+            $('#ProductSelection').on('input', function () {
+                let query = $(this).val();
+                $.ajax({
+                    url: '/Admin/SearchProducts',
+                    method: 'GET',
+                    data: { query: query },
+                    success: function (data) {
+                        $('#product-suggestions').empty();
+                        data.forEach(product => {
+                            $('#product-suggestions').append(`<div class="suggestion" data-id="${product.id}" data-price="${product.price}">${product.name}</div>`);
+                        });
+                    }
+                });
+            });
+
+            $('#product-suggestions').on('click', '.suggestion', function () {
+                var productId = $(this).data('id');
+                var productName = $(this).text();
+
+                $.ajax({
+                    url: '/Admin/GetProductPurchasePrice',
+                    method: 'GET',
+                    data: { productId: productId },
+                    success: function (data) {
+                        $('#PurchasePrice').val(data.purchasePrice.toFixed(2));
+                    }
+                });
+
+                $('#ProductSelection').val(productName);
+                $('#ProductSelection').data('selected-id', productId);
+                $('#product-suggestions').empty();
+            });
+
+            // تحديث الكمية المتوفرة عند تغيير المنتج أو المخزون
+            function updateAvailableQuantity() {
+                const productId = $("#ProductSelection").data("selected-id");
+                const inventoryId = $("#InventorySelection").val();
+
+                if (productId && inventoryId) {
+                    $.ajax({
+                        url: '/Admin/GetAvailableStock',
+                        type: 'GET',
+                        data: { productId: productId, inventoryId: inventoryId },
+                        success: function (data) {
+                            $("#available-quantity-text").text(data.availableQuantity);
+                            $("#available-quantity").val(data.availableQuantity); // تخزين الكمية المتوفرة في عنصر مخفي
+                        },
+                        error: function () {
+                            Swal.fire({
+                                text: 'حدث خطأ أثناء جلب الكمية المتاحة. يرجى المحاولة مرة أخرى.',
+                                icon: 'error',
+                                showConfirmButton: false,
+                                timer: 2000,
+                                toast: true,
+                                position: 'top-end',
+                                background: '#ffffff',
+                                iconColor: '#d9534f',
+                                customClass: {
+                                    popup: 'small-toast',
+                                    title: 'small-toast-title',
+                                    content: 'small-toast-content'
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    $("#available-quantity-text").text(0);
+                    $("#available-quantity").val(0); // تعيين الكمية المتوفرة إلى صفر إذا لم يتم تحديد المنتج أو المخزون
+                }
+            }
+
+            $("#ProductSelection").change(updateAvailableQuantity);
+            $("#InventorySelection").change(updateAvailableQuantity);
+
+            // تحقق عند إضافة عنصر جديد
+            $("#add-item-btn").click(function () {
+                const productId = $("#ProductSelection").data("selected-id");
+                const productName = $("#ProductSelection").val();
+                const quantity = parseFloat($("#Quantity").val()) || 0;
+                const purchasePrice = parseFloat($("#PurchasePrice").val()) || 0;
+                const availableQuantity = parseFloat($("#available-quantity").val()) || 0;
+                const inventoryId = $("#InventorySelection").val();
+                const inventoryName = $("#InventorySelection option:selected").text();
+                const totalPrice = quantity * purchasePrice;
+
+                if (!productId || !quantity || !purchasePrice) {
+                    Swal.fire({
+                        text: 'يرجى ملء جميع الحقول المطلوبة.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    return;
+                }
+
+                if (quantity > availableQuantity) {
+                    Swal.fire({
+                        text: 'الكمية المطلوبة تتجاوز الكمية المتوفرة.',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    return;
+                }
+
+                // Append row to invoice table
+                $("#invoice-body").append(`
+                        <tr>
+                            <td>${productName}<input type="hidden" name="Items[${itemIndex}].ProductId" value="${productId}" /></td>
+                            <td>${quantity}<input type="hidden" name="Items[${itemIndex}].Quantity" value="${quantity}" /></td>
+                            <td>${purchasePrice.toFixed(2)}<input type="hidden" name="Items[${itemIndex}].PurchasePrice" value="${purchasePrice}" /></td>
+                            <td class="item-total">${totalPrice.toFixed(2)}</td>
+                            <td>${inventoryName}<input type="hidden" name="Items[${itemIndex}].InventoryId" value="${inventoryId}" /></td>
+                            <td><i class='bx bxs-edit edit-btn'></i></td>
+                            <td><i class='bx bxs-trash delete-btn'></i></td>
+                        </tr>
+                    `);
+
+                itemIndex++;
+                totalAmount += totalPrice;
+                updateTotals();
+
+                // Clear input fields
+                $("#ProductSelection").val("");
+                $("#Quantity").val("");
+                $("#PurchasePrice").val("");
+                $("#InventorySelection").val("");
+            });
+
+            // Edit and update an item in the invoice table
+            $("#invoice-body").on("click", ".edit-btn", function () {
+                const row = $(this).closest("tr");
+                const productName = row.find("td:nth-child(1)").text();
+                const quantity = parseFloat(row.find("td:nth-child(2)").text());
+                const purchasePrice = parseFloat(row.find("td:nth-child(3)").text());
+                const salePrice = parseFloat(row.find("td:nth-child(4)").text());
+
+                $("#ProductSelection option:contains(" + productName + ")").prop("selected", true);
+                $("#Quantity").val(quantity);
+                $("#PurchasePrice").val(purchasePrice);
+                $("#SalePrice").val(salePrice);
+
+                totalAmount -= parseFloat(row.find(".item-total").text());
+                row.remove();
+                updateTotals();
+            });
+
+            // Function to update total and remaining balance
+            function updateTotals() {
+                $("#total-amount-text").text(totalAmount.toFixed(2));
+                $("#TotalAmount").val(totalAmount.toFixed(2));
+                updateRemainingBalance();
+            }
+
+            // Delete an item from the invoice
+            $("#invoice-body").on("click", ".delete-btn", function () {
+                const row = $(this).closest("tr");
+                const itemTotal = parseFloat(row.find(".item-total").text()) || 0;
+                totalAmount -= itemTotal;
+                row.remove();
+                updateTotals();
+            });
+
+            // Update remaining balance when cash paid is entered
+            $("#CashPaid, #DiscountAmount, #DiscountType").on("input change", updateRemainingBalance);
+
+            function updateRemainingBalance() {
+                const cashPaid = parseFloat($("#CashPaid").val()) || 0;
+                const discountAmount = parseFloat($("#DiscountAmount").val()) || 0;
+                const discountType = $("#DiscountType").val();
+
+                let totalDiscount = 0;
+                if (discountType === "Percentage") {
+                    totalDiscount = (discountAmount / 100) * totalAmount;
+                } else if (discountType === "Amount") {
+                    totalDiscount = discountAmount;
+                }
+
+                const remainingBalance = totalAmount - cashPaid - totalDiscount;
+                $("#remaining-amount-text").text(remainingBalance.toFixed(2));
+                $("#RemainingBalance").val(remainingBalance.toFixed(2));
+            }
+
+
+            $('button[type="submit"]').on('click', function (event) {
+                const tableRows = $('#invoice-body tr');
+                if (tableRows.length === 0) {
+                    Swal.fire({
+                        text: 'يجب إضافة عناصر إلى الفاتورة',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    event.preventDefault();
+                    return;
+                }
+
+                const cashPaid = parseFloat($('#CashPaid').val());
+                if (isNaN(cashPaid) || cashPaid < 0) {
+                    Swal.fire({
+                        text: 'يجب إدخال مبلغ مدفوع نقداً',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    event.preventDefault();
+                    return;
+                }
+
+                const selectedDrawer = $('#MoneyDrawerId').val();
+                if (!selectedDrawer) {
+                    Swal.fire({
+                        text: 'يجب اختيار الخزنة',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                    event.preventDefault();
+                    return;
+                }
+                Swal.fire({
+                    text: 'تم حفظ الفاتورة بنجاح',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    toast: true,
+                    position: 'top-end',
+                    background: '#ffffff',
+                    iconColor: '#28a745',
+                    customClass: {
+                        popup: 'small-toast',
+                        title: 'small-toast-title',
+                        content: 'small-toast-content'
+                    }
+                });
+                $('.print-btn1').click();
+                setTimeout(function () {
+                    $('form').submit();
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>

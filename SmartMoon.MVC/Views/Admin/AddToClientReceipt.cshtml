@@ -1,0 +1,200 @@
+﻿@model ReceiptViewModel
+@{
+    ViewData["Title"] = "AddToClientReceipt";
+    Layout = "_Dashboard";
+}
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركه سمارت مون</title>
+    <!-- رابط الأنماط -->
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/عمليه بيع جديده.css">
+    <link rel="stylesheet" href="~/css/ايصال.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>جاري التحميل...</p>
+    </div>
+
+
+
+    <section class="receipt-section">
+        <div class="separator">
+            <h2>إيصال صرف الى عميل</h2>
+        </div>
+
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-success">@TempData["Message"]</div>
+        }
+
+        <!-- Traditional form submission -->
+        <form asp-action="SaveToClientReceipt" asp-controller="Admin" method="post" id="client-receipt-form">
+            <!-- Client selection and balance display -->
+            <div class="row">
+                <div class="column">
+                    <label for="client-search">العميل</label>
+                    <input type="text" id="client-search" placeholder="اختر العميل" autocomplete="off">
+                    <div id="client-suggestions" class="suggestions"></div>
+                    <input type="hidden" asp-for="Id" id="client-id">
+                </div>
+
+                <div class="column">
+                    <label for="payment-amount">المبلغ</label>
+                    <input type="number" asp-for="PaymentAmount" class="form-control" placeholder="أدخل المبلغ">
+                </div>
+
+                <div class="column">
+                    <label for="cash-register">الخزنة</label>
+                    <select id="cash-register" asp-for="MoneyDrawerId" class="form-control">
+                        <option value="">اختر الخزنة</option>
+                        @foreach (var register in Model.moneyDrawers)
+                        {
+                            <option value="@register.Id">@register.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Previous balance -->
+            <div class="previous-balance">
+                <p>الرصيد السابق: <span id="previous-balance-amount">@Model.PreviousBalance</span></p>
+            </div>
+
+
+
+            <!-- Save button -->
+            <div class="buttons">
+                <button type="submit" class="save-receipt-btn">حفظ الايصال</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- jQuery for AJAX -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Client search and selection
+            $('#client-search').on('input', function () {
+                var searchTerm = $(this).val();
+
+                if (searchTerm.length > 1) {
+                    $.ajax({
+                        url: '/Admin/SearchClients',
+                        type: 'GET',
+                        data: { term: searchTerm },
+                        success: function (clients) {
+                            $('#client-suggestions').empty();
+                            clients.forEach(client => {
+                                $('#client-suggestions').append(`<div class="suggestion-item" data-id="${client.id}">${client.name}</div>`);
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Set client ID and name when selecting a suggestion
+            $(document).on('click', '.suggestion-item', function () {
+                var clientId = $(this).data('id');
+                var clientName = $(this).text();
+
+                $('#client-search').val(clientName);
+                $('#client-id').val(clientId);
+                $('#client-suggestions').empty();
+
+                // Get previous balance for selected client
+                $.ajax({
+                    url: '/Admin/GetClientBalance',
+                    type: 'GET',
+                    data: { clientId: clientId },
+                    success: function (balance) {
+                        $('#previous-balance-amount').text(balance + ' جنيه');
+                        calculateNewBalance();
+                    }
+                });
+            });
+
+
+
+
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            $('#client-receipt-form').on('submit', function (e) {
+                e.preventDefault();
+
+                var client = $('#client-search').val();
+                var amount = $('#payment-amount').val();
+                var cashRegister = $('#cash-register').val();
+
+                if (client === "" || amount === "" || cashRegister === "") {
+                    Swal.fire({
+                        text: 'يرجي ملئ جميع الحقول .',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                } else {
+
+                    this.submit();
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $('#client-receipt-form').on('submit', function (e) {
+                e.preventDefault();
+
+                var client = $('#client-search').val();
+                var amount = $('#payment-amount').val();
+                var cashRegister = $('#cash-register').val();
+
+                if (client === "" || amount === "" || cashRegister === "") {
+                    Swal.fire({
+                        text: 'يرجي ملئ جميع الحقول .',
+                        icon: 'error',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        toast: true,
+                        position: 'top-end',
+                        background: '#ffffff',
+                        iconColor: '#d9534f',
+                        customClass: {
+                            popup: 'small-toast',
+                            title: 'small-toast-title',
+                            content: 'small-toast-content'
+                        }
+                    });
+                } else {
+
+                    this.submit();
+                }
+            });
+        });
+    </script>
+
+
+
+
+</body>
+</html>
+

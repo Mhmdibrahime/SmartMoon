@@ -1,0 +1,145 @@
+.receipt-section {
+    padding: 30px;
+    margin: 0 auto;
+  }
+  
+  h1 {
+    text-align: center;
+    color: var(--color-default);
+  }
+  
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-default);
+    color: var(--color-white);
+    padding: 10px 15px;
+    font-size: 14px;
+    transition: 1s;
+  }
+  
+  button:hover {
+    background-color: var(--color-second);
+    transform: scale(1.01);
+  }
+  
+  .receipt-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    background-color: var(--color-white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .receipt-table th,
+  .receipt-table td {
+    padding: 12px;
+    border: 1px solid var(--color-light);
+    text-align: center;
+    transition: 1s;
+  }
+  
+  .receipt-table th {
+    background-color: var(--color-default);
+    color: var(--color-white);
+  }
+  
+  .receipt-table td:hover {
+    background-color: var(--color-light);
+  }
+  
+  .previous-balance,
+  .new-balance {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 18px;
+  }
+  
+  .bxs-edit,
+  .bxs-trash {
+    font-size: 22px;
+    color: var(--color-default);
+    transition: 0.3s;
+    cursor: pointer;
+  }
+  
+  .bxs-trash {
+    color: #F44336;
+  }
+  
+  .bxs-edit:hover,
+  .bxs-trash:hover {
+    transform: scale(1.1);
+  }
+  
+  @media (max-width: 768px) {
+    .row {
+      flex-direction: column;
+    }
+  
+    input, select {
+      width: 100%;
+    }
+  
+    button {
+      width: 100%;
+    }
+  
+    .receipt-table th,
+    .receipt-table td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  
+    .previous-balance,
+    .new-balance {
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .receipt-section {
+      padding: 10px;
+    }
+  
+    input,
+    select {
+      padding: 6px;
+      font-size: 12px;
+    }
+  
+    button {
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+  
+    .receipt-table th,
+    .receipt-table td {
+      font-size: 10px;
+      padding: 6px;
+    }
+  
+    .previous-balance,
+    .new-balance {
+      font-size: 12px;
+    }
+  }
+  .custom-confirm-btn {
+    background-color: #dc3545; 
+    color: white;
+}
+
+.custom-cancel-btn {
+    background-color: #6c757d; 
+    color: white;
+}
+
+.custom-popup {
+    border-radius: 10px;
+    padding: 20px;
+}
+  
