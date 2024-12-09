@@ -6,6 +6,7 @@ namespace SmartMoon.MVC.Models.ViewModels
     public class ProductsViewModel
     {
         public int ProductId { get; set; }
+        public int BatchId { get; set; }
         [ValidateNever]
         public string ProductName { get; set; }
         [ValidateNever]

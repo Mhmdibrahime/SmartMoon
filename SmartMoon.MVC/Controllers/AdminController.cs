@@ -108,13 +108,14 @@ namespace SmartMoon.MVC.Controllers
                     .Select(pb => new ProductsViewModel
                     {
                         ProductId = p.Id,
+                        BatchId = pb.Id,
                         ProductName = p.Name,
                         Price = p.Price,
                         SupplierName = p.productSuppliers.Select(ps => ps.Supplier.Name).FirstOrDefault() ?? "غير معروف",
                         InventoryName = pb.Inventory.Name,
                         InventoryId = pb.Inventory.Id,
                         Quantity = pb.Quantity,
-                        PurchasePrice = pb.PurchasePrice 
+                        PurchasePrice = pb.PurchasePrice
                     }))
                 .ToList();
 
@@ -190,10 +191,45 @@ namespace SmartMoon.MVC.Controllers
             {
                 return NotFound(new { Message = "Product not found" });
             }
-
-            
+            var batch = context.productBatches.FirstOrDefault(x => x.Id == model.BatchId);
+            if (batch == null)
+            {
+                return NotFound(new { Message = "Product not found" });
+            }
             product.Name = model.ProductName;
             product.Price = model.Price;
+
+            var otherBatches = context.productBatches.Any(x => x.ProductId == model.ProductId);
+            if (otherBatches)
+            {
+                var newQuantity = model.Quantity;
+                var productQuantity = product.Quantity;
+                var batchesQuantiy = context.productBatches.Where(x => x.ProductId == model.ProductId).Where(x => x.Id != model.BatchId).Sum(x => x.Quantity);
+
+                product.Quantity = newQuantity + batchesQuantiy;
+                batch.Quantity = newQuantity;
+
+                batch.PurchasePrice = model.PurchasePrice;
+
+                //if(newQuantity+batchesQuantiy>productQuantity)
+                //{
+                //    batch.Quantity = newQuantity;
+
+                //    product.Quantity = newQuantity + batchesQuantiy;
+                //    batch.PurchasePrice = model.PurchasePrice;
+                //}
+                //else
+                //{
+
+                //}
+            }
+            else
+            {
+                batch.Quantity = model.Quantity;
+                product.Quantity = model.Quantity;
+                batch.PurchasePrice = model.PurchasePrice;
+            }
+            
             context.SaveChanges();
 
             return Ok();
@@ -288,7 +324,7 @@ namespace SmartMoon.MVC.Controllers
                 var moneyDrawer = context.moneyDrawer.FirstOrDefault(x => x.Name == model.MoneyDrawer);
                 if (moneyDrawer != null)
                 {
-                    if (moneyDrawer.CurrentBalance < model.CashPaid) return BadRequest("!رصيد الخزنة غير كافي");
+                    if (moneyDrawer.CurrentBalance < model.CashPaid && model.CashPaid != 0) return BadRequest("!رصيد الخزنة غير كافي");
                     moneyDrawer.CurrentBalance -= model.CashPaid;
                     context.moneyDrawer.Update(moneyDrawer);
                 }
@@ -1779,28 +1815,16 @@ namespace SmartMoon.MVC.Controllers
             var salesData = context.salesBill
                 .Where(s => s.Date >= startOfDay && s.Date <= endOfDay
                             && (drawer == "all" || s.MoneyDrawer == drawer))
-                .Select(s => new
-                {
-                    s.Date,
-                    Items = s.Items.Select(item => new
-                    {
-                        item.Product.Name,
-                        item.Quantity,
-                        SalePrice = item.SalePrice,
-                        TotalPrice = item.TotalPrice,
-                        PurchasePrice = item.Product.ProductBatches
-                            .Where(batch => batch.ProductId == item.ProductId)
-                            .OrderBy(batch => batch.PurchaseDate) 
-                            .Select(batch => batch.PurchasePrice)
-                            .FirstOrDefault(),
-                        Profit = item.TotalPrice - (item.Quantity * item.Product.ProductBatches
-                            .Where(batch => batch.ProductId == item.ProductId)
-                            .OrderBy(batch => batch.PurchaseDate)
-                            .Select(batch => batch.PurchasePrice)
-                            .FirstOrDefault())
-                    }),
-                    User = s.Client.Name ?? "غير معروف" 
-                })
+                 .Select(x => new DailySalesViewModel
+                 {
+                    Id=x.Id,
+                    Date = x.Date,
+                    TotalAmount =x.TotalAmount,
+                    CashPaid=x.CashPaid,
+                    RemainingBalance=x.RemainingBalance,
+                    ClientName = x.Client.Name?? "غير معروف",
+                    UserName = x.User.UserName?? "غير معروف"
+                 })
                 .ToList();
 
             return Json(salesData);
@@ -1823,6 +1847,23 @@ namespace SmartMoon.MVC.Controllers
                 return NotFound("Money drawer not found.");
 
             return Ok(drawer.CurrentBalance);
+        }
+        [HttpGet]
+        public IActionResult GetSalesBillItems(int billId)
+        {
+            var billItems = context.SalesBillItem
+                .Where(item => item.SalesBillId == billId)
+                .Select(item => new
+                {
+                    
+                    item.Product.Name,
+                    item.Quantity,
+                    item.SalePrice,
+                    item.TotalPrice
+                })
+                .ToList();
+
+            return Json(billItems);
         }
 
         [HttpGet]

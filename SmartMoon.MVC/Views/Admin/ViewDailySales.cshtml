@@ -64,14 +64,15 @@
         <table class="operations-table">
             <thead>
                 <tr>
-                    <th>الصنف</th>
-                    <th>الكميه</th>
-                    <th>السعر</th>
-                    <th>الاجمالي</th>
-                    <th>سعر الشراء</th>
-                    <th>الربح</th>
-                    <th>نسبه الربح</th>
+                    <th>رقم الفاتورة</th>
+                    <th>التاريخ</th>
                     <th>الوقت</th>
+                    <th>الاجمالي</th>
+                    <th>المدفوع</th>
+                    <th>المتبقي</th>
+                    
+                    <th> تفاصيل الفاتورة</th>
+                    <th>العميل</th>
                     <th>المستخدم</th>
                 </tr>
             </thead>
@@ -84,64 +85,17 @@
 
     <!-- السكريبتات -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('#view-report-btn').on('click', function () {
-            const selectedDate = $('#start-date').val();
-            const drawer = $('#sales-point').val();
+    <script>
+        $(document).ready(function () {
+            // Handle "View Report" button click
+            $('#view-report-btn').on('click', function () {
+                const selectedDate = $('#start-date').val();
+                const drawer = $('#sales-point').val();
 
-            if (!selectedDate) {
-                Swal.fire({
-                    text: 'يرجى اختيار تاريخ.',
-                    icon: 'warning',
-                    showConfirmButton: false,
-                    timer: 2000,
-                    toast: true,
-                    position: 'top-end',
-                    background: '#ffffff',
-                    iconColor: '#d9534f',
-                    customClass: {
-                        popup: 'small-toast',
-                        title: 'small-toast-title',
-                        content: 'small-toast-content'
-                    }
-                });
-                return;
-            }
-
-            $.ajax({
-                url: '/Admin/GetDailySalesReport',
-                type: 'GET',
-                data: { selectedDate: selectedDate, drawer: drawer },
-                success: function (data) {
-                    console.log("Received Data:", data);
-                    $('#operations-table-body').empty();
-
-                    data.forEach(salesBill => {
-                        salesBill.Items.forEach(item => {
-                            const profitPercentage = (item.Profit / (item.Quantity * item.PurchasePrice) * 100) || 0;
-
-                            const row = `
-                                <tr>
-                                    <td>${item.Product.Name}</td>
-                                    <td>${item.Quantity}</td>
-                                    <td>${item.SalePrice.toFixed(2)}</td>
-                                    <td>${item.TotalPrice.toFixed(2)}</td>
-                                    <td>${item.PurchasePrice.toFixed(2)}</td>
-                                    <td>${item.Profit.toFixed(2)}</td>
-                                    <td>${profitPercentage.toFixed(2)}%</td>
-                                    <td>${new Date(salesBill.Date).toLocaleTimeString()}</td>
-                                    <td>${salesBill.User}</td>
-                                </tr>`;
-
-                            $('#operations-table-body').append(row);
-                        });
-                    });
-                },
-                error: function (error) {
-                    console.error('Error fetching daily sales report:', error);
+                // Validate that a date is selected
+                if (!selectedDate) {
                     Swal.fire({
-                        text: 'حدث خطأ أثناء جلب البيانات',
+                        text: 'يرجى اختيار تاريخ.',
                         icon: 'warning',
                         showConfirmButton: false,
                         timer: 2000,
@@ -155,11 +109,111 @@
                             content: 'small-toast-content'
                         }
                     });
+                    return;
                 }
+
+                // Perform AJAX request to fetch daily sales report
+                $.ajax({
+                    url: '/Admin/GetDailySalesReport',
+                    type: 'GET',
+                    data: { selectedDate: selectedDate, drawer: drawer },
+                    success: function (data) {
+                        console.log("Received Data:", data);
+
+                        // Clear existing table rows
+                        $('#operations-table-body').empty();
+
+                        // Append new rows to the table
+                        data.forEach(salesBill => {
+                            const billDate = new Date(salesBill.date);
+                            const formattedDate = billDate.toLocaleDateString();
+                            const formattedTime = billDate.toLocaleTimeString();
+
+                            const row = `
+                                <tr>
+                                    <td>${salesBill.id}</td>
+                                    <td>${formattedDate}</td>
+                                    <td>${formattedTime}</td>
+                                    <td>${salesBill.totalAmount.toFixed(2)}</td>
+                                    <td>${salesBill.cashPaid.toFixed(2)}</td>
+                                    <td>${salesBill.remainingBalance.toFixed(2)}</td>
+                                    <td><button class="details-btn" data-id="${salesBill.id}">عرض</button></td>
+                                    <td>${salesBill.clientName }</td>
+                                    <td>${salesBill.userName }</td>
+                                </tr>`;
+
+                            $('#operations-table-body').append(row);
+                        });
+
+                        // Attach event handlers for dynamically generated buttons
+                        $('.details-btn').on('click', function () {
+                            const billId = $(this).data('id');
+
+                            // AJAX request to fetch the bill items
+                            $.ajax({
+                                url: '/Admin/GetSalesBillItems',
+                                type: 'GET',
+                                data: { billId: billId },
+                                success: function (billItems) {
+                                    
+                                    let itemsContent = '<ul>';
+                                    billItems.forEach(item => {
+                                        itemsContent += `
+                                            <li>
+                                                <strong>المنتج:</strong> ${item.name}<br>
+                                                <strong>الكمية:</strong> ${item.quantity}<br>
+                                                <strong>السعر:</strong> ${item.salePrice.toFixed(2)}<br>
+                                                <strong>الإجمالي:</strong> ${item.totalPrice.toFixed(2)}
+                                            </li><hr>`;
+                                    });
+                                    itemsContent += '</ul>';
+
+                                    
+                                    Swal.fire({
+                                        title: 'تفاصيل الفاتورة',
+                                        html: itemsContent,
+                                        icon: 'info',
+                                        confirmButtonText: 'تم'
+                                    });
+                                },
+                                error: function (error) {
+                                    console.error('Error fetching sales bill items:', error);
+                                    Swal.fire({
+                                        text: 'حدث خطأ أثناء جلب تفاصيل الفاتورة',
+                                        icon: 'error',
+                                        confirmButtonText: 'تم'
+                                    });
+                                }
+                            });
+                        });
+                    },
+                    error: function (error) {
+                        console.error('Error fetching daily sales report:', error);
+
+                        // Show error notification
+                        Swal.fire({
+                            text: 'حدث خطأ أثناء جلب البيانات',
+                            icon: 'warning',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            toast: true,
+                            position: 'top-end',
+                            background: '#ffffff',
+                            iconColor: '#d9534f',
+                            customClass: {
+                                popup: 'small-toast',
+                                title: 'small-toast-title',
+                                content: 'small-toast-content'
+                            }
+                        });
+                    }
+                });
             });
         });
-    });
-</script>
+    </script>
+
+
+
 
 
 </body>
